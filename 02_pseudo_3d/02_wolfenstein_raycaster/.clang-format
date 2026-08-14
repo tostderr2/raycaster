@@ -1,0 +1,73 @@
+# BasedOnStyle: LLVM
+# UseTab: Always
+# IndentWidth: 4
+# TabWidth: 4
+#
+# # BreakBeforeBraces: Allman
+# AllowShortFunctionsOnASingleLine: None
+# AllowShortBlocksOnASingleLine: false
+#
+# # SortIncludes: true
+#
+# IncludeBlocks: Preserve
+#
+# #  exclude GLAD from sorting
+# IncludeCategories:
+#   - Regex: 'glad/glad\.h'
+#     Priority: 1
+#     SortPriority: 1
+#   - Regex: '.*'
+#     Priority: 2
+#
+#---
+BasedOnStyle: LLVM
+Language: Cpp
+
+# Indentation & Tabs
+UseTab: Never
+IndentWidth: 4
+TabWidth: 4
+ColumnLimit: 100
+
+# Bracing Style
+# 'Allman' if you prefer it
+BreakBeforeBraces: Attach
+
+# Short Statement Rules
+AllowShortFunctionsOnASingleLine: None
+AllowShortBlocksOnASingleLine: false
+AllowShortIfStatementsOnASingleLine: Never
+AllowShortLoopsOnASingleLine: false
+
+# Include Management
+SortIncludes: CaseSensitive
+IncludeBlocks: Regroup
+IncludeCategories:
+  # Force GLAD to stay at the very top (OpenGL header order requirement)
+  - Regex: '<glad/glad\.h>|"glad/glad\.h"'
+    Priority: 1
+    SortPriority: 1
+  # C Standard Library
+  - Regex: '<[a-z_0-9]+(\.h)?>'
+    Priority: 2
+    SortPriority: 2
+  # C++ Standard Library
+  - Regex: '<[a-zA-Z0-9_]+>'
+    Priority: 3
+    SortPriority: 3
+  # Third-party / Vendor libraries (SDL3, GLFW, GLM, etc.)
+  - Regex: '<.*>'
+    Priority: 4
+    SortPriority: 4
+  # Project-local headers
+  - Regex: '.*'
+    Priority: 5
+    SortPriority: 5
+
+# Formatting
+AlignAfterOpenBracket: Align
+AlignConsecutiveAssignments: None
+AlignConsecutiveDeclarations: None
+SpaceAfterCStyleCast: false
+SpacesInParentheses: false
+...
