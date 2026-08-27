@@ -1,6 +1,8 @@
 
 
 #include <cmath>
+#include <iostream>
+#include <ostream>
 
 #include <SDL3/SDL.h>
 #include <SDL3/SDL_events.h>
@@ -147,31 +149,40 @@ void render(SDL_Renderer *renderer, SDL_Surface *winSurface, Player &p) {
 
     // start at player.x and y
     // end at a distance 300px with angle calculated distance
-    // float firstLineAngle = p.m_lookAngle;
-    // Vec2f firstLineEndPos = Vec2f(p.GetPlayerFRect()->x, p.GetPlayerFRect()->y) +
-    // Vec2f(std::cos(firstLineAngle ), std::sin(firstLineAngle) ) * 300;
 
     SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
     // fist
-    float lineLegth = 100.0f;
-    float firstAngle = p.m_lookAngle - p.m_FOVBy2;
-    Vec2f direction = Vec2f(std::cos(firstAngle), std::sin(firstAngle));
-    Vec2f endPoint = direction * lineLegth;
-    Vec2f end1 = Vec2f(p.GetPlayerFRect()->x, p.GetPlayerFRect()->y) + endPoint;
+    float lineLegth = 5000.0f;
+    float lengthStep = 0.1f;
 
+    float firstAngleRad = p.m_lookAngleRad - p.m_FOVBy2Rad;
+    float lastAngleRad = p.m_lookAngleRad + p.m_FOVBy2Rad;
 
-    // last
-    float lastAngle = p.m_lookAngle + p.m_FOVBy2;
-    direction = Vec2f(std::cos(lastAngle), std::sin(lastAngle));
-    Vec2f end2 = Vec2f(p.GetPlayerFRect()->x, p.GetPlayerFRect()->y) + (direction * lineLegth);
+    Vec2f direction;
+    Vec2f end;
+    float angleStep = 1.0f * DEG_TO_RAD;
+    Vec2f start = p.Posf();
 
-    for (float currentAngle = firstAngle; currentAngle < lastAngle; currentAngle += 0.1) {
-        direction = Vec2f(std::cos(currentAngle), std::sin(currentAngle));
-        endPoint = direction * lineLegth;
-        end1 = Vec2f(p.GetPlayerFRect()->x, p.GetPlayerFRect()->y) + endPoint;
-        SDL_RenderLine(renderer, p.GetPlayerFRect()->x, p.GetPlayerFRect()->y, end1.x, end1.y);
+    std::cout << "First angle: " << firstAngleRad;
+    std::cout << "\nlast angle: " << lastAngleRad << std::endl;
+    for (float angle = firstAngleRad; angle <= lastAngleRad; angle += angleStep) {
+        direction = Vec2f(std::cos(angle), std::sin(angle));
+        float dist = 0.1f;
+        for (dist = 0.1; dist < lineLegth; dist += lengthStep) {
+            // get the vec2f pos of the dot
+            Vec2f checkPoint = start + direction * dist;
+            // convert to map space
+            checkPoint *= Vec2f(MAP_SPACE_STEP_RATIO_X, MAP_SPACE_STEP_RATIO_Y);
+            int row = checkPoint.y;
+            int col = checkPoint.x;
+            // check if this point has a wall (is > 0)
+            if (MAP_G[row][col] > 0) {
+                break;
+            }
+        }
+        end = start + direction * dist;
+        SDL_RenderLine(renderer, start.x, start.y, end.x, end.y);
     }
-    SDL_RenderLine(renderer, p.GetPlayerFRect()->x, p.GetPlayerFRect()->y, end2.x, end2.y);
 
     SDL_RenderPresent(renderer);
 }
