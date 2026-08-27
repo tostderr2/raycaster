@@ -1,8 +1,6 @@
 
 
 #include <cmath>
-#include <iostream>
-#include <ostream>
 
 #include <SDL3/SDL.h>
 #include <SDL3/SDL_events.h>
@@ -146,43 +144,16 @@ void render(SDL_Renderer *renderer, SDL_Surface *winSurface, Player &p) {
     // done player rect
 
     // draw a line at the players current angle
-
     // start at player.x and y
     // end at a distance 300px with angle calculated distance
+    float firstLineAngle = p.m_lookAngle - p.m_FOVBy2;
+    // : this will seem funny, as number goes below and above 360
+    float secondLineAngle = p.m_lookAngle + p.m_FOVBy2;
+    Vec2f firstLineEndPos = Vec2f(std::cos(firstLineAngle) * 300, std::sin(secondLineAngle) * 300);
 
     SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
-    // fist
-    float lineLegth = 5000.0f;
-    float lengthStep = 0.1f;
-
-    float firstAngleRad = p.m_lookAngleRad - p.m_FOVBy2Rad;
-    float lastAngleRad = p.m_lookAngleRad + p.m_FOVBy2Rad;
-
-    Vec2f direction;
-    Vec2f end;
-    float angleStep = 1.0f * DEG_TO_RAD;
-    Vec2f start = p.Posf();
-
-    std::cout << "First angle: " << firstAngleRad;
-    std::cout << "\nlast angle: " << lastAngleRad << std::endl;
-    for (float angle = firstAngleRad; angle <= lastAngleRad; angle += angleStep) {
-        direction = Vec2f(std::cos(angle), std::sin(angle));
-        float dist = 0.1f;
-        for (dist = 0.1; dist < lineLegth; dist += lengthStep) {
-            // get the vec2f pos of the dot
-            Vec2f checkPoint = start + direction * dist;
-            // convert to map space
-            checkPoint *= Vec2f(MAP_SPACE_STEP_RATIO_X, MAP_SPACE_STEP_RATIO_Y);
-            int row = checkPoint.y;
-            int col = checkPoint.x;
-            // check if this point has a wall (is > 0)
-            if (MAP_G[row][col] > 0) {
-                break;
-            }
-        }
-        end = start + direction * dist;
-        SDL_RenderLine(renderer, start.x, start.y, end.x, end.y);
-    }
+    SDL_RenderLine(renderer, p.GetPlayerFRect()->x, p.GetPlayerFRect()->y, firstLineEndPos.x,
+                   firstLineEndPos.y);
 
     SDL_RenderPresent(renderer);
 }
@@ -213,12 +184,14 @@ void processInput(SDL_Event *event, Player &player, double dt) {
     if (keypressed[SDL_SCANCODE_D]) {
         player.MoveRight(dt);
     }
-    if (keypressed[SDL_SCANCODE_RIGHT]) {
-        player.TurnRight(dt);
-    }
-    if (keypressed[SDL_SCANCODE_LEFT]) {
-        player.TurnLeft(dt);
-    }
+	if (keypressed[SDL_SCANCODE_RIGHT])
+{
+		player.TurnRight(dt);
+	}
+	if (keypressed[SDL_SCANCODE_LEFT])
+{
+		player.TurnLeft(dt);
+	}
 }
 
 // will someday clean up and remove globals so just keeping this a bit cleaner. maybe just using
