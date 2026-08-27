@@ -144,16 +144,34 @@ void render(SDL_Renderer *renderer, SDL_Surface *winSurface, Player &p) {
     // done player rect
 
     // draw a line at the players current angle
+
     // start at player.x and y
     // end at a distance 300px with angle calculated distance
-    float firstLineAngle = p.m_lookAngle - p.m_FOVBy2;
-    // : this will seem funny, as number goes below and above 360
-    float secondLineAngle = p.m_lookAngle + p.m_FOVBy2;
-    Vec2f firstLineEndPos = Vec2f(std::cos(firstLineAngle) * 300, std::sin(secondLineAngle) * 300);
+    // float firstLineAngle = p.m_lookAngle;
+    // Vec2f firstLineEndPos = Vec2f(p.GetPlayerFRect()->x, p.GetPlayerFRect()->y) +
+    // Vec2f(std::cos(firstLineAngle ), std::sin(firstLineAngle) ) * 300;
 
     SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
-    SDL_RenderLine(renderer, p.GetPlayerFRect()->x, p.GetPlayerFRect()->y, firstLineEndPos.x,
-                   firstLineEndPos.y);
+    // fist
+    float lineLegth = 100.0f;
+    float firstAngle = p.m_lookAngle - p.m_FOVBy2;
+    Vec2f direction = Vec2f(std::cos(firstAngle), std::sin(firstAngle));
+    Vec2f endPoint = direction * lineLegth;
+    Vec2f end1 = Vec2f(p.GetPlayerFRect()->x, p.GetPlayerFRect()->y) + endPoint;
+
+
+    // last
+    float lastAngle = p.m_lookAngle + p.m_FOVBy2;
+    direction = Vec2f(std::cos(lastAngle), std::sin(lastAngle));
+    Vec2f end2 = Vec2f(p.GetPlayerFRect()->x, p.GetPlayerFRect()->y) + (direction * lineLegth);
+
+    for (float currentAngle = firstAngle; currentAngle < lastAngle; currentAngle += 0.1) {
+        direction = Vec2f(std::cos(currentAngle), std::sin(currentAngle));
+        endPoint = direction * lineLegth;
+        end1 = Vec2f(p.GetPlayerFRect()->x, p.GetPlayerFRect()->y) + endPoint;
+        SDL_RenderLine(renderer, p.GetPlayerFRect()->x, p.GetPlayerFRect()->y, end1.x, end1.y);
+    }
+    SDL_RenderLine(renderer, p.GetPlayerFRect()->x, p.GetPlayerFRect()->y, end2.x, end2.y);
 
     SDL_RenderPresent(renderer);
 }
@@ -184,14 +202,12 @@ void processInput(SDL_Event *event, Player &player, double dt) {
     if (keypressed[SDL_SCANCODE_D]) {
         player.MoveRight(dt);
     }
-	if (keypressed[SDL_SCANCODE_RIGHT])
-{
-		player.TurnRight(dt);
-	}
-	if (keypressed[SDL_SCANCODE_LEFT])
-{
-		player.TurnLeft(dt);
-	}
+    if (keypressed[SDL_SCANCODE_RIGHT]) {
+        player.TurnRight(dt);
+    }
+    if (keypressed[SDL_SCANCODE_LEFT]) {
+        player.TurnLeft(dt);
+    }
 }
 
 // will someday clean up and remove globals so just keeping this a bit cleaner. maybe just using
