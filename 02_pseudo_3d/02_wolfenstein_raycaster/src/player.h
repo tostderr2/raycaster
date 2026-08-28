@@ -66,11 +66,11 @@ class Player {
     Player();
     void MoveForward(double dt);
     void MoveBackward(double dt);
-    void MoveLeft(double dt);
-    void MoveRight(double dt);
+    // void MoveLeft(double dt);
+    // void MoveRight(double dt);
     void TurnRight(double dt);
     void TurnLeft(double dt);
-    SDL_FRect *GetPlayerFRect();
+    // SDL_FRect *GetPlayerFRect();
     Vec2f Posf();
 
     float m_lookAngle;
@@ -92,5 +92,5 @@ class Player {
 
     Vec2f m_pos;
     float m_speed;
-    SDL_FRect m_playerFRect;
+    // SDL_FRect m_playerFRect;
 };

@@ -19,6 +19,7 @@
 #include "player.h"
 
 void render(SDL_Renderer *renderer, SDL_Surface *winSurface, Player &player);
+void renderRaycasted(SDL_Renderer *renderer, SDL_Surface *winSurface, Player &p);
 void processInput(SDL_Event *event, Player &player, double dt);
 bool running = true;
 
@@ -34,8 +35,8 @@ int main(int argc, char *argv[]) {
         return SDL_APP_FAILURE;
     }
 
-    SDL_CreateWindowAndRenderer("Wolfenstien raycastor", WIN_WD_G, WIN_HT_G, SDL_WINDOW_RESIZABLE,
-                                &window, &renderer);
+    SDL_CreateWindowAndRenderer("Wolfenstien raycastor", KWinWidth, KWinHeight,
+                                SDL_WINDOW_RESIZABLE, &window, &renderer);
     if (!window) {
         SDL_Log("Couldn't create window and renderer: %s\n", SDL_GetError());
         return -1;
@@ -49,7 +50,7 @@ int main(int argc, char *argv[]) {
      * SDL_LOGICAL_PRESENTATION_INTEGER_SCALE   < The rendered content is scaled up by integer
      * multiples to fit the output resolution
      */
-    if (!SDL_SetRenderLogicalPresentation(renderer, WIN_WD_G, WIN_HT_G,
+    if (!SDL_SetRenderLogicalPresentation(renderer, KWinWidth, KWinHeight,
                                           SDL_LOGICAL_PRESENTATION_INTEGER_SCALE)) {
         SDL_Log("Couldn't Set render logical presentation: %s\n", SDL_GetError());
         return -1;
@@ -77,7 +78,9 @@ int main(int argc, char *argv[]) {
         prevTime = currentTime;
         processInput(&event, player, dt);
 
-        render(renderer, winSurface, player);
+        // renders the 2d top down view
+        // render(renderer, winSurface, player);
+        renderRaycasted(renderer, winSurface, player);
     }
     return 0;
 }
@@ -101,91 +104,147 @@ Vec4i GetColor(int num) {
     return wall;
 }
 
-void render(SDL_Renderer *renderer, SDL_Surface *winSurface, Player &p) {
+void renderRaycasted(SDL_Renderer *renderer, SDL_Surface *winSurface, Player &p) {
     // draw the bg
     // sky blue color
-    SDL_SetRenderDrawColorFloat(renderer, teal.r, teal.g, teal.b, teal.a);
+    SDL_SetRenderDrawColorFloat(renderer, KTeal.r, KTeal.g, KTeal.b, KTeal.a);
     SDL_RenderClear(renderer);
-    // end bg
+    // end of bg
 
-    // draw the map
-    // this will be used by proper enums for color accoridng to the number on map
-    Vec4i w = GetColor(0); // all black for now
-    float currentX = 0.0f;
-    float currentY = 0.0f;
-    SDL_FRect drawRect{};
-    // draw the map
-    for (int x = 0; x < MAP_HT_G; ++x) {
-        for (int y = 0; y < MAP_WD_G; ++y) {
-            if (MAP_G[x][y] == 0) {
-                // empty spaces drawn idk which color this is, randomly typed the nums data
-                w = GetColor(1);
-                SDL_SetRenderDrawColor(renderer, w.r, w.g, w.b, w.a);
-            } else {
-                // walls are drawn black
-                w = GetColor(0);
-                SDL_SetRenderDrawColor(renderer, w.r, w.g, w.b, w.a);
-            }
-            drawRect = {currentX, currentY, DRAW_BOX_WD_G, DRAW_BOX_HT_G};
-            // FIXME: not drawing correct ratio of window size to map size
-            // drawRect = {currentX, currentY, DRAW_BOX_WD_G, DRAW_BOX_WD_G};
-            //
-            SDL_RenderFillRect(renderer, &drawRect);
-            // push x one box ahead
-            currentX += DRAW_BOX_WD_G;
-        }
+    float angleStep = p.m_FOVRad / KWinWidth;
 
-        currentY += (float)DRAW_BOX_HT_G;
-        currentX = 0.0f;
-    }
-    // done map
+    int raycount = 0;
+    for (size_t col = 0; col < KWinWidth - 1; ++col) {
+        float rayStep = 0.1f;
+        float dist = 0.0f;
 
-    // draw the player rect !Debug
-    SDL_SetRenderDrawColor(renderer, p.r, p.g, p.b, p.a);
-    SDL_RenderFillRect(renderer, p.GetPlayerFRect());
-    // done player rect
-
-    // draw a line at the players current angle
-
-    // start at player.x and y
-    // end at a distance 300px with angle calculated distance
-
-    SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
-    // fist
-    float lineLegth = 5000.0f;
-    float lengthStep = 0.1f;
-
-    float firstAngleRad = p.m_lookAngleRad - p.m_FOVBy2Rad;
-    float lastAngleRad = p.m_lookAngleRad + p.m_FOVBy2Rad;
-
-    Vec2f direction;
-    Vec2f end;
-    float angleStep = 1.0f * DEG_TO_RAD;
-    Vec2f start = p.Posf();
-
-    std::cout << "First angle: " << firstAngleRad;
-    std::cout << "\nlast angle: " << lastAngleRad << std::endl;
-    for (float angle = firstAngleRad; angle <= lastAngleRad; angle += angleStep) {
-        direction = Vec2f(std::cos(angle), std::sin(angle));
-        float dist = 0.1f;
-        for (dist = 0.1; dist < lineLegth; dist += lengthStep) {
-            // get the vec2f pos of the dot
-            Vec2f checkPoint = start + direction * dist;
-            // convert to map space
-            checkPoint *= Vec2f(MAP_SPACE_STEP_RATIO_X, MAP_SPACE_STEP_RATIO_Y);
-            int row = checkPoint.y;
-            int col = checkPoint.x;
-            // check if this point has a wall (is > 0)
-            if (MAP_G[row][col] > 0) {
+        // cast the ray ath the ray angle and get the distance from player to the wall
+        float rayAngle = p.m_lookAngle - p.m_FOVBy2Rad + (col * angleStep);
+        Vec2f direction = Vec2f(cosf(rayAngle), sinf(rayAngle));
+        bool stop = false;
+        while (!stop) {
+            int stepX = static_cast<int>(p.Posf().x + direction.x * dist);
+            int stepY = static_cast<int>(p.Posf().y + direction.y * dist);
+            if (stepX < 0 || stepX >= KMapWidth || stepY < 0 || stepY >= KMapHeight) {
+                stop = true;
                 break;
             }
+            if (KMap[stepY][stepX] > 0) {
+                stop = true;
+            }
+            dist += rayStep;
         }
-        end = start + direction * dist;
-        SDL_RenderLine(renderer, start.x, start.y, end.x, end.y);
+        // ray dist done
+
+        // draw the map for this one column of window with the dist value
+
+        // get the wall ht
+        // will be put into if else block later
+        if (dist < 0.1) {
+            dist = 0.1f;
+        }
+
+        float screenCentre = KWinHeight / 2.0f;
+        float wallHt = KWinHeight / dist;
+        float wallStart = screenCentre - wallHt / 2.0f;
+        float wallEnd = screenCentre + wallHt / 2.0f;
+
+        SDL_SetRenderDrawColorFloat(renderer, 100/255.0f, 100/255.0f, 100/255.0f, 1.0f);
+        SDL_RenderLine(renderer, (float)col, wallStart, (float)col, wallEnd);
+
+        SDL_SetRenderDrawColorFloat(renderer, 0, 0, 0, 1.0);
+        SDL_RenderLine(renderer, (float)col, wallEnd, (float)col, KWinHeight);
     }
 
     SDL_RenderPresent(renderer);
 }
+
+// todo: player pos is changed from win related to map related. change the imp here
+// void render(SDL_Renderer *renderer, SDL_Surface *winSurface, Player &p) {
+//     // draw the bg
+//     // sky blue color
+//     SDL_SetRenderDrawColorFloat(renderer, KTeal.r, KTeal.g, KTeal.b, KTeal.a);
+//     SDL_RenderClear(renderer);
+//     // end bg
+//
+//     // draw the map
+//     // this will be used by proper enums for color accoridng to the number on map
+//     Vec4i w = GetColor(0); // all black for now
+//     float currentX = 0.0f;
+//     float currentY = 0.0f;
+//     SDL_FRect drawRect{};
+//     // draw the map
+//     for (int x = 0; x < KMapHeight; ++x) {
+//         for (int y = 0; y < KMapWidth; ++y) {
+//             if (KMap[x][y] == 0) {
+//                 // empty spaces drawn idk which color this is, randomly typed the nums data
+//                 w = GetColor(1);
+//                 SDL_SetRenderDrawColor(renderer, w.r, w.g, w.b, w.a);
+//             } else {
+//                 // walls are drawn black
+//                 w = GetColor(0);
+//                 SDL_SetRenderDrawColor(renderer, w.r, w.g, w.b, w.a);
+//             }
+//             drawRect = {currentX, currentY, KDrawBoxWidth, KDrawBoxHeight};
+//             // FIXME: not drawing correct ratio of window size to map size
+//             // drawRect = {currentX, currentY, DRAW_BOX_WD_G, DRAW_BOX_WD_G};
+//             //
+//             SDL_RenderFillRect(renderer, &drawRect);
+//             // push x one box ahead
+//             currentX += KDrawBoxWidth;
+//         }
+//
+//         currentY += (float)KDrawBoxHeight;
+//         currentX = 0.0f;
+//     }
+//     // done map
+//
+//     // draw the player rect !Debug
+//     SDL_SetRenderDrawColor(renderer, p.r, p.g, p.b, p.a);
+//     SDL_RenderFillRect(renderer, p.GetPlayerFRect());
+//     // done player rect
+//
+//     // draw a line at the players current angle
+//
+//     // start at player.x and y
+//     // end at a distance 300px with angle calculated distance
+//
+//     SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
+//     // fist
+//     float lineLegth = 5000.0f;
+//     float lengthStep = 0.1f;
+//
+//     float firstAngleRad = p.m_lookAngleRad - p.m_FOVBy2Rad;
+//     float lastAngleRad = p.m_lookAngleRad + p.m_FOVBy2Rad;
+//
+//     Vec2f direction;
+//     Vec2f end;
+//     float angleStep = 1.0f * DEG_TO_RAD;
+//     Vec2f start = p.Posf();
+//
+//     std::cout << "First angle: " << firstAngleRad;
+//     std::cout << "\nlast angle: " << lastAngleRad << std::endl;
+//     for (float angle = firstAngleRad; angle <= lastAngleRad; angle += angleStep) {
+//         direction = Vec2f(std::cos(angle), std::sin(angle));
+//         float dist = 0.1f;
+//         for (dist = 0.1; dist < lineLegth; dist += lengthStep) {
+//             // get the vec2f pos of the dot
+//             Vec2f checkPoint = start + direction * dist;
+//             // convert to map space
+//             checkPoint *= Vec2f(KMapSpaceStepRatioX, KMapSpaceStepRatioY);
+//             int row = checkPoint.y;
+//             int col = checkPoint.x;
+//             // check if this point has a wall (is > 0)
+//             if (KMap[row][col] > 0) {
+//                 break;
+//             }
+//         }
+//         end = start + direction * dist;
+//         SDL_RenderLine(renderer, start.x, start.y, end.x, end.y);
+//     }
+//
+//     SDL_RenderPresent(renderer);
+// }
 
 void processInput(SDL_Event *event, Player &player, double dt) {
     while (SDL_PollEvent(event)) {
@@ -207,12 +266,12 @@ void processInput(SDL_Event *event, Player &player, double dt) {
     if (keypressed[SDL_SCANCODE_S]) {
         player.MoveBackward(dt);
     }
-    if (keypressed[SDL_SCANCODE_A]) {
-        player.MoveLeft(dt);
-    }
-    if (keypressed[SDL_SCANCODE_D]) {
-        player.MoveRight(dt);
-    }
+    // if (keypressed[SDL_SCANCODE_A]) {
+    //     player.MoveLeft(dt);
+    // }
+    // if (keypressed[SDL_SCANCODE_D]) {
+    //     player.MoveRight(dt);
+    // }
     if (keypressed[SDL_SCANCODE_RIGHT]) {
         player.TurnRight(dt);
     }

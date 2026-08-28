@@ -30,7 +30,7 @@ TabWidth: 4
 ColumnLimit: 100
 
 # Bracing Style
-# 'Allman' if you prefer it
+# BreakBeforeBraces: Allman
 BreakBeforeBraces: Attach
 
 # Short Statement Rules
@@ -70,4 +70,4 @@ AlignConsecutiveAssignments: None
 AlignConsecutiveDeclarations: None
 SpaceAfterCStyleCast: false
 SpacesInParentheses: false
-...
+
