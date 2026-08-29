@@ -113,13 +113,12 @@ void renderRaycasted(SDL_Renderer *renderer, SDL_Surface *winSurface, Player &p)
 
     float angleStep = p.m_FOVRad / KWinWidth;
 
-    int raycount = 0;
     for (size_t col = 0; col < KWinWidth - 1; ++col) {
         float rayStep = 0.1f;
         float dist = 0.0f;
 
         // cast the ray ath the ray angle and get the distance from player to the wall
-        float rayAngle = p.m_lookAngle - p.m_FOVBy2Rad + (col * angleStep);
+        float rayAngle = p.m_lookAngleRad - p.m_FOVBy2Rad + (col * angleStep);
         Vec2f direction = Vec2f(cosf(rayAngle), sinf(rayAngle));
         bool stop = false;
         while (!stop) {
@@ -139,7 +138,8 @@ void renderRaycasted(SDL_Renderer *renderer, SDL_Surface *winSurface, Player &p)
         // draw the map for this one column of window with the dist value
 
         // get the wall ht
-        // will be put into if else block later
+        // will be put into if else block later with more accurate dist
+        // to ht representation
         if (dist < 0.1) {
             dist = 0.1f;
         }
@@ -149,7 +149,7 @@ void renderRaycasted(SDL_Renderer *renderer, SDL_Surface *winSurface, Player &p)
         float wallStart = screenCentre - wallHt / 2.0f;
         float wallEnd = screenCentre + wallHt / 2.0f;
 
-        SDL_SetRenderDrawColorFloat(renderer, 100/255.0f, 100/255.0f, 100/255.0f, 1.0f);
+        SDL_SetRenderDrawColorFloat(renderer, 100 / 255.0f, 100 / 255.0f, 100 / 255.0f, 1.0f);
         SDL_RenderLine(renderer, (float)col, wallStart, (float)col, wallEnd);
 
         SDL_SetRenderDrawColorFloat(renderer, 0, 0, 0, 1.0);
