@@ -51,7 +51,7 @@ int main(int argc, char *argv[]) {
      * multiples to fit the output resolution
      */
     if (!SDL_SetRenderLogicalPresentation(renderer, KWinWidth, KWinHeight,
-                                          SDL_LOGICAL_PRESENTATION_INTEGER_SCALE)) {
+                                          SDL_LOGICAL_PRESENTATION_STRETCH)) {
         SDL_Log("Couldn't Set render logical presentation: %s\n", SDL_GetError());
         return -1;
     }
@@ -103,7 +103,6 @@ Vec4i GetColor(int num) {
     }
     return wall;
 }
-
 void renderRaycasted(SDL_Renderer *renderer, SDL_Surface *winSurface, Player &p) {
     // draw the bg
     // sky blue color
@@ -116,6 +115,7 @@ void renderRaycasted(SDL_Renderer *renderer, SDL_Surface *winSurface, Player &p)
     for (size_t col = 0; col < KWinWidth - 1; ++col) {
         float rayStep = 0.1f;
         float dist = 0.0f;
+        Color color;
 
         // cast the ray ath the ray angle and get the distance from player to the wall
         float rayAngle = p.m_lookAngleRad - p.m_FOVBy2Rad + (col * angleStep);
@@ -129,6 +129,24 @@ void renderRaycasted(SDL_Renderer *renderer, SDL_Surface *winSurface, Player &p)
                 break;
             }
             if (KMap[stepY][stepX] > 0) {
+                switch (KMap[stepY][stepX]) {
+                // case MudFloor:
+                //     color = KMudFloor;
+                //     break;
+                case StoneWall_ID:
+                    color = KStoneWall;
+                    break;
+                case RedWall_ID:
+                    color = KRedWall;
+                    break;
+                case IceBlue_ID:
+                    color = KIceBlueWall;
+                    break;
+                default:
+                    color = KDefaultWhite;
+                    break;
+                }
+
                 stop = true;
             }
             dist += rayStep;
@@ -149,11 +167,16 @@ void renderRaycasted(SDL_Renderer *renderer, SDL_Surface *winSurface, Player &p)
         float wallStart = screenCentre - wallHt / 2.0f;
         float wallEnd = screenCentre + wallHt / 2.0f;
 
-        SDL_SetRenderDrawColorFloat(renderer, 100 / 255.0f, 100 / 255.0f, 100 / 255.0f, 1.0f);
+        // walls
+        SDL_SetRenderDrawColorFloat(renderer, color.r, color.g, color.b, color.a);
         SDL_RenderLine(renderer, (float)col, wallStart, (float)col, wallEnd);
 
-        SDL_SetRenderDrawColorFloat(renderer, 0, 0, 0, 1.0);
+        // floor
+        color = KMudFloor;
+        SDL_SetRenderDrawColorFloat(renderer, color.r, color.g, color.b, color.a);
         SDL_RenderLine(renderer, (float)col, wallEnd, (float)col, KWinHeight);
+
+        // bg is all blue, so sky is already drawn
     }
 
     SDL_RenderPresent(renderer);
