@@ -1,5 +1,6 @@
 #pragma once
 
+#include <cstdlib>
 #include <SDL3/SDL_rect.h>
 
 struct Vec2i {
@@ -47,7 +48,7 @@ struct Vec2f {
     }
 
     void operator/=(float scale) {
-        if (scale != 0.0) {
+        if (std::abs(scale ) >  0.000001f) {
             x /= scale;
             y /= scale;
         }
@@ -64,12 +65,12 @@ class Player {
 
   public:
     Player();
-    void MoveForward(double dt);
-    void MoveBackward(double dt);
-    // void MoveLeft(double dt);
-    // void MoveRight(double dt);
-    void TurnRight(double dt);
-    void TurnLeft(double dt);
+    void MoveForward(float dt);
+    void MoveBackward(float dt);
+    // void MoveLeft(float dt);
+    // void MoveRight(float dt);
+    void TurnRight(float dt);
+    void TurnLeft(float dt);
     // SDL_FRect *GetPlayerFRect();
     Vec2f Posf();
 

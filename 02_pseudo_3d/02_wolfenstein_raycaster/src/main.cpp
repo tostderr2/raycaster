@@ -1,8 +1,6 @@
 
 
 #include <cmath>
-#include <iostream>
-#include <ostream>
 
 #include <SDL3/SDL.h>
 #include <SDL3/SDL_events.h>
@@ -19,11 +17,11 @@
 #include "player.h"
 
 void render(SDL_Renderer *renderer, SDL_Surface *winSurface, Player &player);
-void renderRaycasted(SDL_Renderer *renderer, SDL_Surface *winSurface, Player &p);
-void processInput(SDL_Event *event, Player &player, double dt);
+void renderRaycasted(SDL_Renderer *renderer, Player &p);
+void processInput(SDL_Event *event, Player &player, float dt);
 bool running = true;
 
-int main(int argc, char *argv[]) {
+int main(/*int argc, char *argv[]*/) {
     // init and setup basic window and renderer
     /* We will use this renderer to draw into this window every frame. */
     static SDL_Window *window{nullptr};
@@ -62,12 +60,12 @@ int main(int argc, char *argv[]) {
     Player player;
     SDL_Event event;
 
-    constexpr double fixedFrameSpeed = 0.018f;
-    double prevTime = static_cast<double>(SDL_GetTicks()) / 1000.0f;
+    constexpr float fixedFrameSpeed = 0.018;
+    float prevTime = static_cast<float>(SDL_GetTicks()) / 1000;
 
     while (running) {
-        double currentTime = static_cast<double>(SDL_GetTicks()) / 1000.0f;
-        double dt = currentTime - prevTime;
+        float currentTime = static_cast<float>(SDL_GetTicks()) / 1000;
+        float dt = currentTime - prevTime;
         if (dt < fixedFrameSpeed)
             continue;
 
@@ -76,7 +74,7 @@ int main(int argc, char *argv[]) {
 
         // renders the 2d top down view
         // render(renderer, winSurface, player);
-        renderRaycasted(renderer, winSurface, player);
+        renderRaycasted(renderer, player);
     }
     return 0;
 }
@@ -99,7 +97,7 @@ Vec4i GetColor(int num) {
     }
     return wall;
 }
-void renderRaycasted(SDL_Renderer *renderer, SDL_Surface *winSurface, Player &p) {
+void renderRaycasted(SDL_Renderer *renderer, Player &p) {
     // draw the bg
     // sky blue color
     SDL_SetRenderDrawColorFloat(renderer, KTeal.r, KTeal.g, KTeal.b, KTeal.a);
@@ -110,11 +108,11 @@ void renderRaycasted(SDL_Renderer *renderer, SDL_Surface *winSurface, Player &p)
 
     for (size_t col = 0; col < KWinWidth - 1; ++col) {
         float rayStep = 0.1f;
-        float dist = 0.0f;
+        float dist = 0.0;
         Color color;
 
         // cast the ray ath the ray angle and get the distance from player to the wall
-        float rayAngle = p.m_lookAngleRad - p.m_FOVBy2Rad + (col * angleStep);
+        float rayAngle = p.m_lookAngleRad - p.m_FOVBy2Rad + (static_cast<float>(col) * angleStep);
         Vec2f direction = Vec2f(cosf(rayAngle), sinf(rayAngle));
         bool stop = false;
         while (!stop) {
@@ -150,14 +148,14 @@ void renderRaycasted(SDL_Renderer *renderer, SDL_Surface *winSurface, Player &p)
         // ray dist done
         // raw dist will be longer at the edges (-fov/2 and +fov/2)
         // so using perpendicular dist from the players y pos is much better visually
-		// removes the fish eye effect (where the view plane looks a bit like a globe)
-		float perpDist = dist * cosf(p.m_lookAngleRad - rayAngle);
+        // removes the fish eye effect (where the view plane looks a bit like a globe)
+        float perpDist = dist * cosf(rayAngle - p.m_lookAngleRad);
 
         // draw the map for this one column of window with the dist value
         // get the wall ht
         // will be put into if else block later with more accurate dist
         // to ht representation
-        if (perpDist < 0.1) {
+        if (perpDist < 0.1f) {
             perpDist = 0.1f;
         }
 
@@ -168,12 +166,14 @@ void renderRaycasted(SDL_Renderer *renderer, SDL_Surface *winSurface, Player &p)
 
         // walls
         SDL_SetRenderDrawColorFloat(renderer, color.r, color.g, color.b, color.a);
-        SDL_RenderLine(renderer, (float)col, wallStart, (float)col, wallEnd);
+        SDL_RenderLine(renderer, static_cast<float>(col), wallStart, static_cast<float>(col),
+                       wallEnd);
 
         // floor
         color = KMudFloor;
         SDL_SetRenderDrawColorFloat(renderer, color.r, color.g, color.b, color.a);
-        SDL_RenderLine(renderer, (float)col, wallEnd, (float)col, KWinHeight);
+        SDL_RenderLine(renderer, static_cast<float>(col), wallEnd, static_cast<float>(col),
+                       KWinHeight);
 
         // bg is all blue, so sky is already drawn
     }
@@ -181,7 +181,7 @@ void renderRaycasted(SDL_Renderer *renderer, SDL_Surface *winSurface, Player &p)
     SDL_RenderPresent(renderer);
 }
 
-void processInput(SDL_Event *event, Player &player, double dt) {
+void processInput(SDL_Event *event, Player &player, float dt) {
     while (SDL_PollEvent(event)) {
         if (event->type == SDL_EVENT_QUIT) {
             running = false;
@@ -217,10 +217,10 @@ void processInput(SDL_Event *event, Player &player, double dt) {
 }
 
 // will someday clean up and remove globals so just keeping this a bit cleaner. maybe just using
-template <size_t Rows, size_t Cols>
-// this should return some data, dist of the wall hit, if hit
-void castRay(Vec2f startPt, float viewAngle, const int (&map)[Rows][Cols]) {
-}
+// template <size_t Rows, size_t Cols>
+// // this should return some data, dist of the wall hit, if hit
+// void castRay(Vec2f startPt, float viewAngle, const int (&map)[Rows][Cols]) {
+// }
 
 // todo: player pos is changed from win related to map related. change the impl here
 // this can be used for mini map maybe
@@ -258,7 +258,7 @@ void castRay(Vec2f startPt, float viewAngle, const int (&map)[Rows][Cols]) {
 //             currentX += KDrawBoxWidth;
 //         }
 //
-//         currentY += (float)KDrawBoxHeight;
+//         currentY += static_cast<float>(KDrawBoxHeight);
 //         currentX = 0.0f;
 //     }
 //     // done map

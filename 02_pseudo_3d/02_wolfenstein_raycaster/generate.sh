@@ -1,2 +1,2 @@
 #!/bin/bash
-cmake -B build/ && ./makeandrun.sh
+cmake -B build/

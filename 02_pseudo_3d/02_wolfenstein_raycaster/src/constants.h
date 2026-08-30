@@ -11,8 +11,8 @@ constexpr size_t KMapHeight = 12;
 constexpr size_t KDrawBoxWidth = KWinWidth / KMapWidth;
 constexpr size_t KDrawBoxHeight = KWinHeight / KMapHeight;
 
-constexpr float KMapSpaceStepRatioX = KMapWidth / (float)KWinWidth;
-constexpr float KMapSpaceStepRatioY = KMapHeight / (float)KWinHeight;
+constexpr float KMapSpaceStepRatioX = KMapWidth / static_cast<float>(KWinWidth);
+constexpr float KMapSpaceStepRatioY = KMapHeight / static_cast<float>(KWinHeight);
 
 struct Color {
     float r;

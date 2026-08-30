@@ -34,7 +34,7 @@ void Player::move(Vec2f delta) {
 }
 
 bool Player::colliding(Vec2f newPos) {
-    int mapX = static_cast<int>(newPos.x);
+    int mapX = static_cast<int >(newPos.x);
     int mapY = static_cast<int>(newPos.y);
 
     if (mapX < 0 || mapX >= KMapWidth || mapY < 0 || mapY >= KMapHeight) {
@@ -44,36 +44,36 @@ bool Player::colliding(Vec2f newPos) {
     return KMap[mapY][mapX] != 0;
 }
 
-void Player::MoveForward(double dt) {
+void Player::MoveForward(float dt) {
     Vec2f direction = Vec2f(cosf(m_lookAngleRad), sinf(m_lookAngleRad));
     Vec2f toMove = direction * (m_speed * static_cast<float>(dt));
     move(toMove);
 }
 
-void Player::MoveBackward(double dt) {
+void Player::MoveBackward(float dt) {
     Vec2f direction = Vec2f(cosf(m_lookAngleRad), sinf(m_lookAngleRad));
     Vec2f toMove = direction * (-m_speed * static_cast<float>(dt));
     move(toMove);
 }
 //
-// void Player::MoveLeft(double dt) {
+// void Player::MoveLeft(float dt) {
 //     Vec2f toMove = Vec2f(1.0f, 0.0f);
 //     toMove *= -1 * m_speed * dt;
 //     move(toMove);
 // }
 //
-// void Player::MoveRight(double dt) {
+// void Player::MoveRight(float dt) {
 //     Vec2f toMove = Vec2f(1.0f, 0.0f);
 //     toMove *= m_speed * dt;
 //     move(toMove);
 // }
 //
-void Player::TurnRight(double dt) {
+void Player::TurnRight(float dt) {
     m_lookAngleRad += dt * m_TurnRate;
     std::cout << "angle: " << m_lookAngleRad << std::endl;
 }
 
-void Player::TurnLeft(double dt) {
+void Player::TurnLeft(float dt) {
     m_lookAngleRad -= dt * m_TurnRate;
     std::cout << "angle: " << m_lookAngleRad << std::endl;
 }
