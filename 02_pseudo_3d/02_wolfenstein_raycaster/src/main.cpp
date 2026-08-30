@@ -151,7 +151,7 @@ void renderRaycasted(SDL_Renderer *renderer, SDL_Surface *winSurface, Player &p)
         // raw dist will be longer at the edges (-fov/2 and +fov/2)
         // so using perpendicular dist from the players y pos is much better visually
 		// removes the fish eye effect (where the view plane looks a bit like a globe)
-		float perpDist = dist * cosf(p.m_FOVBy2Rad - rayAngle);
+		float perpDist = dist * cosf(p.m_lookAngleRad - rayAngle);
 
         // draw the map for this one column of window with the dist value
         // get the wall ht
