@@ -1,16 +1,28 @@
 /*
-*
-* this way i can draw the bg that looks like a sky with a setting sun
-* need a bit more working, currenlty bottom half it teal(blue)
-* upper hald is orange.
-* need to lerp from orange to teal as it goes up, as sun is setting and 
-* around that its orange and the sky above slowly looks more and more blue
-*
-* then theres also place below sun where it might become visible form our view
-* which shoudlnt be blue, maybe we add an ocean or something
-* for later
-*
-*/
+ * info:
+ * problems that we have rn in this phase of commit
+ * 1 Fish-eye lens distortion from raw Euclidean distance
+ * 2 Computational inefficiency and spatial aliasing in fixed-step ray marching
+ * 3 Lack of surface orientation and depth perception (flat, unshaded walls)
+ * 4 Absence of wall texture mapping (affine texture coordinate projection)
+ * 5 Untextured floor and ceiling surfaces (lack of horizontal scanline projection)
+ * 6 Inconsistent frame timing and input stutter from brittle fixed-delay loop polling
+ *
+ */
+
+/*
+ * info:
+ * this way i can draw the bg that looks like a sky with a setting sun
+ * need a bit more working, currenlty bottom half it teal(blue)
+ * upper hald is orange.
+ * need to lerp from orange to teal as it goes up, as sun is setting and
+ * around that its orange and the sky above slowly looks more and more blue
+ *
+ * then theres also place below sun where it might become visible form our view
+ * which shoudlnt be blue, maybe we add an ocean or something
+ * for later
+ *
+ */
 //
 // #include <SDL3/SDL_pixels.h>
 // #include <SDL3/SDL_render.h>
@@ -18,7 +30,7 @@
 // SDL_FColor teal = { 145.0f / 255.0f, 217.0f / 255.0f, 214.0f / 255.0f, 1.0f };
 // SDL_FColor orange = { 181.0f / 255.0f, 93.0f / 255.0f, 11.0f / 255.0f, 1.0f };
 //
-// float w = 800.0f; 
+// float w = 800.0f;
 // float h = 600.0f;
 // float mid_y = h * 0.5f;
 //

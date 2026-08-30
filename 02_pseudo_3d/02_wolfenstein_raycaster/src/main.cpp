@@ -41,15 +41,11 @@ int main(int argc, char *argv[]) {
         SDL_Log("Couldn't create window and renderer: %s\n", SDL_GetError());
         return -1;
     }
-    // check later
+
+    // todo: check later
     // this makes the actual draw screen of the size of our given wid and ht
-    /*
-     * This function sets the width and height of the logical rendering output.
-     * The renderer will act as if the current render target is always the
-     * requested dimensions, scaling to the actual resolution as necessary.
-     * SDL_LOGICAL_PRESENTATION_INTEGER_SCALE   < The rendered content is scaled up by integer
-     * multiples to fit the output resolution
-     */
+    // SDL_LOGICAL_PRESENTATION_STRETCH,   /< The rendered content is stretched to the output
+    // resolution
     if (!SDL_SetRenderLogicalPresentation(renderer, KWinWidth, KWinHeight,
                                           SDL_LOGICAL_PRESENTATION_STRETCH)) {
         SDL_Log("Couldn't Set render logical presentation: %s\n", SDL_GetError());
@@ -152,18 +148,21 @@ void renderRaycasted(SDL_Renderer *renderer, SDL_Surface *winSurface, Player &p)
             dist += rayStep;
         }
         // ray dist done
+        // raw dist will be longer at the edges (-fov/2 and +fov/2)
+        // so using perpendicular dist from the players y pos is much better visually
+		// removes the fish eye effect (where the view plane looks a bit like a globe)
+		float perpDist = dist * cosf(p.m_FOVBy2Rad - rayAngle);
 
         // draw the map for this one column of window with the dist value
-
         // get the wall ht
         // will be put into if else block later with more accurate dist
         // to ht representation
-        if (dist < 0.1) {
-            dist = 0.1f;
+        if (perpDist < 0.1) {
+            perpDist = 0.1f;
         }
 
         float screenCentre = KWinHeight / 2.0f;
-        float wallHt = KWinHeight / dist;
+        float wallHt = KWinHeight / perpDist;
         float wallStart = screenCentre - wallHt / 2.0f;
         float wallEnd = screenCentre + wallHt / 2.0f;
 
@@ -182,7 +181,49 @@ void renderRaycasted(SDL_Renderer *renderer, SDL_Surface *winSurface, Player &p)
     SDL_RenderPresent(renderer);
 }
 
-// todo: player pos is changed from win related to map related. change the imp here
+void processInput(SDL_Event *event, Player &player, double dt) {
+    while (SDL_PollEvent(event)) {
+        if (event->type == SDL_EVENT_QUIT) {
+            running = false;
+        }
+
+        if (event->type == SDL_EVENT_KEY_DOWN)
+            if (event->key.key == SDLK_ESCAPE) {
+                running = false;
+            }
+    }
+
+    const bool *keypressed = SDL_GetKeyboardState(NULL);
+
+    if (keypressed[SDL_SCANCODE_W]) {
+        player.MoveForward(dt);
+    }
+    if (keypressed[SDL_SCANCODE_S]) {
+        player.MoveBackward(dt);
+    }
+    // todo: add strafing here later
+    // if (keypressed[SDL_SCANCODE_A]) {
+    //     player.MoveLeft(dt);
+    // }
+    // if (keypressed[SDL_SCANCODE_D]) {
+    //     player.MoveRight(dt);
+    // }
+    if (keypressed[SDL_SCANCODE_RIGHT]) {
+        player.TurnRight(dt);
+    }
+    if (keypressed[SDL_SCANCODE_LEFT]) {
+        player.TurnLeft(dt);
+    }
+}
+
+// will someday clean up and remove globals so just keeping this a bit cleaner. maybe just using
+template <size_t Rows, size_t Cols>
+// this should return some data, dist of the wall hit, if hit
+void castRay(Vec2f startPt, float viewAngle, const int (&map)[Rows][Cols]) {
+}
+
+// todo: player pos is changed from win related to map related. change the impl here
+// this can be used for mini map maybe
 // void render(SDL_Renderer *renderer, SDL_Surface *winSurface, Player &p) {
 //     // draw the bg
 //     // sky blue color
@@ -209,7 +250,7 @@ void renderRaycasted(SDL_Renderer *renderer, SDL_Surface *winSurface, Player &p)
 //                 SDL_SetRenderDrawColor(renderer, w.r, w.g, w.b, w.a);
 //             }
 //             drawRect = {currentX, currentY, KDrawBoxWidth, KDrawBoxHeight};
-//             // FIXME: not drawing correct ratio of window size to map size
+//             // fixme: not drawing correct ratio of window size to map size
 //             // drawRect = {currentX, currentY, DRAW_BOX_WD_G, DRAW_BOX_WD_G};
 //             //
 //             SDL_RenderFillRect(renderer, &drawRect);
@@ -268,43 +309,3 @@ void renderRaycasted(SDL_Renderer *renderer, SDL_Surface *winSurface, Player &p)
 //
 //     SDL_RenderPresent(renderer);
 // }
-
-void processInput(SDL_Event *event, Player &player, double dt) {
-    while (SDL_PollEvent(event)) {
-        if (event->type == SDL_EVENT_QUIT) {
-            running = false;
-        }
-
-        if (event->type == SDL_EVENT_KEY_DOWN)
-            if (event->key.key == SDLK_ESCAPE) {
-                running = false;
-            }
-    }
-
-    const bool *keypressed = SDL_GetKeyboardState(NULL);
-
-    if (keypressed[SDL_SCANCODE_W]) {
-        player.MoveForward(dt);
-    }
-    if (keypressed[SDL_SCANCODE_S]) {
-        player.MoveBackward(dt);
-    }
-    // if (keypressed[SDL_SCANCODE_A]) {
-    //     player.MoveLeft(dt);
-    // }
-    // if (keypressed[SDL_SCANCODE_D]) {
-    //     player.MoveRight(dt);
-    // }
-    if (keypressed[SDL_SCANCODE_RIGHT]) {
-        player.TurnRight(dt);
-    }
-    if (keypressed[SDL_SCANCODE_LEFT]) {
-        player.TurnLeft(dt);
-    }
-}
-
-// will someday clean up and remove globals so just keeping this a bit cleaner. maybe just using
-template <size_t Rows, size_t Cols>
-// this should return some data, dist of the wall hit, if hit
-void castRay(Vec2f startPt, float viewAngle, const int (&map)[Rows][Cols]) {
-}
