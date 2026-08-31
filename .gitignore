@@ -6,13 +6,3 @@ bin-int/
 .vscode/
 compile_commands.json
 
-# temporary hidden as the development has not yet started
-01_software_2d/
-02_pseudo_3d/03_wolfenstein_game_complete/
-02_pseudo_3d/04_mode7_racing_game/
-03_software_3d_engine/
-04_hardware_gpu_projects/
-05_raytracing_projects/
-06_engine_tools/
-
-
