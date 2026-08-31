@@ -21,7 +21,7 @@ void renderRaycasted(SDL_Renderer *renderer, Player &p);
 void processInput(SDL_Event *event, Player &player, float dt);
 bool running = true;
 
-int main(/*int argc, char *argv[]*/) {
+int main(int/* argc */, char** /* argv*/) {
     // init and setup basic window and renderer
     /* We will use this renderer to draw into this window every frame. */
     static SDL_Window *window{nullptr};
