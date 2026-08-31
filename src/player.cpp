@@ -7,10 +7,10 @@
 
 // m_pos is currently vec2f, but should be vec2int
 Player::Player() : m_pos(2.5f, 2.5f) { // Start in the middle of cell (2, 2)
-    m_speed = 1.0f;                    // Move 1 map tiles per second
-    m_TurnRate = 2.0f;                 // Radians per second
+    m_speed = 2.0f;                    // Move 1 map tiles per second
+    m_TurnRate = 2.5f;                 // Radians per second
 
-    m_lookAngle = 140.0f;
+    m_lookAngle = 0.0f;
     m_lookAngleRad = m_lookAngle * DEG_TO_RAD;
 
     m_FOV = 90.0f;

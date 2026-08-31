@@ -98,18 +98,31 @@ Vec4i GetColor(int num) {
     return wall;
 }
 void renderRaycasted(SDL_Renderer *renderer, Player &p) {
+
+    float midY = KWinHeight / 2.0f;
+    SDL_Vertex vertices[4] = {// Top-Left (Orange)
+                              {.position = {0.0f, 0.0f}, .color = KTeal},
+                              // Top-Right (Orange)
+                              {.position = {KWinWidth, 0.0f}, .color = KTeal},
+                              // Mid-Left (Teal)
+                              {.position = {0.0f, midY}, .color = KOrange},
+                              // Mid-Right (Teal)
+                              {.position = {KWinWidth, midY}, .color = KOrange}};
+
+    int indices[6] = {0, 1, 2, 1, 3, 2};
+
     // draw the bg
-    // sky blue color
-    SDL_SetRenderDrawColorFloat(renderer, KTeal.r, KTeal.g, KTeal.b, KTeal.a);
+    SDL_SetRenderDrawColorFloat(renderer, KOrange.r, KOrange.g, KOrange.b, KOrange.a);
     SDL_RenderClear(renderer);
     // end of bg
+    SDL_RenderGeometry(renderer, NULL, vertices, 4, indices, 6);
 
     float angleStep = p.m_FOVRad / KWinWidth;
 
+    Color color;
     for (size_t col = 0; col < KWinWidth - 1; ++col) {
-        float rayStep = 0.1f;
+        float rayStep = 0.01f;
         float dist = 0.0;
-        Color color;
 
         // cast the ray ath the ray angle and get the distance from player to the wall
         float rayAngle = p.m_lookAngleRad - p.m_FOVBy2Rad + (static_cast<float>(col) * angleStep);
@@ -122,19 +135,19 @@ void renderRaycasted(SDL_Renderer *renderer, Player &p) {
                 stop = true;
                 break;
             }
-            if (KMap[stepY][stepX] > 0) {
+            if (KMap[stepY][stepX] != 0) {
                 switch (KMap[stepY][stepX]) {
-                // case MudFloor:
-                //     color = KMudFloor;
-                //     break;
                 case StoneWall_ID:
                     color = KStoneWall;
                     break;
                 case RedWall_ID:
-                    color = KRedWall;
+                    color = KMaroonWall;
                     break;
                 case IceBlue_ID:
                     color = KIceBlueWall;
+                    break;
+                case Empty_ID:
+						color = KEmpty; // FIXME: alpha is 0 still this renders as solid white
                     break;
                 default:
                     color = KDefaultWhite;
@@ -164,14 +177,19 @@ void renderRaycasted(SDL_Renderer *renderer, Player &p) {
         float wallStart = screenCentre - wallHt / 2.0f;
         float wallEnd = screenCentre + wallHt / 2.0f;
 
+        // bg
+        // SDL_SetRenderDrawColor(renderer, KTeal.r, KTeal.g, KTeal.b, KTeal.a);
+        // SDL_RenderLine(renderer, static_cast<float>(col), wallStart, static_cast<float>(col),
+        //                KWinHeight);
+
         // walls
-        SDL_SetRenderDrawColorFloat(renderer, color.r, color.g, color.b, color.a);
+        SDL_SetRenderDrawColor(renderer, color.r, color.g, color.b, color.a);
         SDL_RenderLine(renderer, static_cast<float>(col), wallStart, static_cast<float>(col),
                        wallEnd);
 
         // floor
         color = KMudFloor;
-        SDL_SetRenderDrawColorFloat(renderer, color.r, color.g, color.b, color.a);
+        SDL_SetRenderDrawColor(renderer, color.r, color.g, color.b, color.a);
         SDL_RenderLine(renderer, static_cast<float>(col), wallEnd, static_cast<float>(col),
                        KWinHeight);
 
