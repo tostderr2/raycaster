@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.20)
 project(wolfenstein_raycaster
     VERSION 1.0.0
-    DESCRIPTION "A modern C++20 software raycaster using SDL3"
+    DESCRIPTION "Software raycaster using SDL3"
     LANGUAGES C CXX
 )
 
