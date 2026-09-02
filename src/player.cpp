@@ -1,14 +1,13 @@
 #include "player.h"
 
 #include <cmath>
-#include <iostream>
 
 #include "constants.h"
 
 // m_pos is currently vec2f, but should be vec2int
-Player::Player() : m_pos(2.5f, 2.5f) { // Start in the middle of cell (2, 2)
-    m_speed = 2.0f;                    // Move 1 map tiles per second
-    m_TurnRate = 2.5f;                 // Radians per second
+Player::Player() : m_pos(1.2f, 1.2f) { // Start inside the cell
+    m_speed = 2.7f;                    // Move 2.7 map tiles per second
+    m_TurnRate = 3.0f;                 // Radians per second
 
     m_lookAngle = 0.0f;
     m_lookAngleRad = m_lookAngle * DEG_TO_RAD;
@@ -30,12 +29,12 @@ void Player::move(Vec2f delta) {
         // m_playerFRect.x = m_pos.x;
         // m_playerFRect.y = m_pos.y;
     }
-    std::cout << "player pos: (x: " << m_pos.x << ", y: " << m_pos.y << ")\n";
+    // std::cout << "player pos: (x: " << m_pos.x << ", y: " << m_pos.y << ")\n";
 }
 
 bool Player::colliding(Vec2f newPos) {
-    int mapX = static_cast<int >(newPos.x);
-    int mapY = static_cast<int>(newPos.y);
+    size_t mapX = static_cast<size_t >(newPos.x);
+    size_t mapY = static_cast<size_t>(newPos.y);
 
     if (mapX < 0 || mapX >= KMapWidth || mapY < 0 || mapY >= KMapHeight) {
         return true;
@@ -70,12 +69,12 @@ void Player::MoveBackward(float dt) {
 //
 void Player::TurnRight(float dt) {
     m_lookAngleRad += dt * m_TurnRate;
-    std::cout << "angle: " << m_lookAngleRad << std::endl;
+    // std::cout << "angle: " << m_lookAngleRad << std::endl;
 }
 
 void Player::TurnLeft(float dt) {
     m_lookAngleRad -= dt * m_TurnRate;
-    std::cout << "angle: " << m_lookAngleRad << std::endl;
+    // std::cout << "angle: " << m_lookAngleRad << std::endl;
 }
 
 // SDL_FRect *Player::GetPlayerFRect() {

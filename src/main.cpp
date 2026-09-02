@@ -1,6 +1,7 @@
 
 
 #include <cmath>
+#include <iostream>
 
 #include <SDL3/SDL.h>
 #include <SDL3/SDL_events.h>
@@ -21,7 +22,16 @@ void renderRaycasted(SDL_Renderer *renderer, Player &p);
 void processInput(SDL_Event *event, Player &player, float dt);
 bool running = true;
 
-int main(int/* argc */, char** /* argv*/) {
+std::ostream& operator<<(std::ostream& os, const Color& color) {
+    os << "RGBA(" 
+       << static_cast<int>(color.r) << ", "
+       << static_cast<int>(color.g) << ", "
+       << static_cast<int>(color.b) << ", "
+       << static_cast<int>(color.a) << ")";
+    return os;
+}
+
+int main(int /* argc */, char ** /* argv*/) {
     // init and setup basic window and renderer
     /* We will use this renderer to draw into this window every frame. */
     static SDL_Window *window{nullptr};
@@ -60,7 +70,7 @@ int main(int/* argc */, char** /* argv*/) {
     Player player;
     SDL_Event event;
 
-    constexpr float fixedFrameSpeed = 0.018;
+    constexpr float fixedFrameSpeed = 0.018f;
     float prevTime = static_cast<float>(SDL_GetTicks()) / 1000;
 
     while (running) {
@@ -137,6 +147,9 @@ void renderRaycasted(SDL_Renderer *renderer, Player &p) {
             }
             if (KMap[stepY][stepX] != 0) {
                 switch (KMap[stepY][stepX]) {
+                case Empty_ID:
+                    color = KEmpty; // FIXME: alpha is 0 still this renders as solid white
+                    break;
                 case StoneWall_ID:
                     color = KStoneWall;
                     break;
@@ -146,8 +159,11 @@ void renderRaycasted(SDL_Renderer *renderer, Player &p) {
                 case IceBlue_ID:
                     color = KIceBlueWall;
                     break;
-                case Empty_ID:
-						color = KEmpty; // FIXME: alpha is 0 still this renders as solid white
+                case Purple_ID:
+                    color = KPurple;
+                    break;
+                case Green_ID:
+                    color = KGreen;
                     break;
                 default:
                     color = KDefaultWhite;
@@ -193,7 +209,7 @@ void renderRaycasted(SDL_Renderer *renderer, Player &p) {
         SDL_RenderLine(renderer, static_cast<float>(col), wallEnd, static_cast<float>(col),
                        KWinHeight);
 
-        // bg is all blue, so sky is already drawn
+        // bg is blue with sunset shade, so sky is already drawn
     }
 
     SDL_RenderPresent(renderer);
@@ -327,3 +343,4 @@ void processInput(SDL_Event *event, Player &player, float dt) {
 //
 //     SDL_RenderPresent(renderer);
 // }
+
