@@ -1,6 +1,7 @@
 #include "player.h"
 
 #include <cmath>
+#include <cstring>
 #include <iostream>
 
 #include <SDL3/SDL_stdinc.h>
@@ -102,12 +103,14 @@ void Player::Shoot(float dt) {
     Uint64 current = SDL_GetTicks();
 
     if (current - lastFireTime >= fireRate) {
-        std::cout << "Player shot a bullte\n";
+        std::cout << "Player shot a bullet!\n";
         lastFireTime = current;
 
-        // DUMMY LEAK: Allocate 500 integers on the heap and never call delete[]
-        int *dummyLeak = new int[50000];
-        dummyLeak[0] = 42;
+        // // test: intentional ram drain.
+        // // allocate 50 mb every frame
+        // size_t size = 1000 * 1024 * 1024;
+        // char *massiveLeak = new char[size];
+        // std::memset(massiveLeak, 'a', size);
     }
 }
 // SDL_FRect *Player::GetPlayerFRect() {

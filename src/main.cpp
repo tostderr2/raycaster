@@ -102,7 +102,7 @@ void raycasterFillBuffer(Uint32 *pixleData, Player &p) {
                 // paint blue
                 pixelColor = packColor(KTeal);
             } else if (row < wallEnd) {
-                int valueInsideGrid = hitWall ? KMap[rayHit.hitY][rayHit.hitY] : StoneWall_ID;
+                int valueInsideGrid = hitWall ? KMap[rayHit.hitY][rayHit.hitX] : StoneWall_ID;
                 pixelColor = packColor(wallColor(valueInsideGrid));
             } else {
                 // draw the ground

@@ -45,8 +45,10 @@ if(MSVC)
         /w14265 # class has virtual functions, but destructor is not virtual
         /w14296 # expression is always true/false
         /w14545 # expression before comma evaluates to a function which is missing an argument list
+        /w14242 # 'identifier': conversion from 'type1' to 'type2', possible loss of data
     )
 else()
+    # Corrected: Applied BOTH to compilation AND linking
     target_compile_options(${PROJECT_NAME} PRIVATE
         -Wall
         -Wextra
@@ -62,25 +64,15 @@ else()
         -Wnull-dereference
         -Wdouble-promotion
         -Wformat=2
-
+        -fsanitize=address,undefined   # Instruments memory accesses during compilation
+        -g
+        -O0
     )
- target_link_options(${PROJECT_NAME} PRIVATE
-        -fsanitize=address,undefined
-    )
-endif()
-
-# Asset Syncing Post-Build
-set(ASSET_DIR "${CMAKE_CURRENT_SOURCE_DIR}/assets")
-if(EXISTS "${ASSET_DIR}")
-    add_custom_command(
-        TARGET ${PROJECT_NAME} POST_BUILD
-        COMMAND ${CMAKE_COMMAND} -E copy_directory
-            "${ASSET_DIR}"
-            "$<TARGET_FILE_DIR:${PROJECT_NAME}>/assets"
-        COMMENT "Syncing asset directory to target binary output directory..."
+    
+    target_link_options(${PROJECT_NAME} PRIVATE
+        -fsanitize=address,undefined   # Links the runtime sanitizer libraries
     )
 endif()
-
 # perf:
 # 1. Create a user-facing toggle option (Default is OFF)
 # 1. Create the user option (Defaults to ON as you requested)

@@ -10,3 +10,4 @@ justmake.sh
 makeandrun.sh
 generate.sh
 
+asan/
