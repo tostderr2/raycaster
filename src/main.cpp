@@ -43,6 +43,8 @@ bool running = true;
 SDL_Renderer *renderer{nullptr};
 bool vSync = VSYNC_DEFAULT;
 
+int called = 0;
+
 Color wallColor(int wall) {
     Color color;
     switch (wall) {
@@ -74,18 +76,17 @@ Color wallColor(int wall) {
 
 void raycasterFillBuffer(Uint32 *pixleData, Player &p) {
 
-
-    rc::RcMap rcMap{reinterpret_cast<const int *>(KMap), KMapWidth, KMapHeight};
+    static rc::RcMap rcMap{reinterpret_cast<const int *>(KMap), KMapWidth, KMapHeight};
     static std::vector<RcHit> outHits(KWinWidth);
 
-    rc::castFOV(p.m_lookAngleRad, p.m_FOVRad, p.m_pos.x, p.m_pos.x, rcMap, outHits.data(),
-                KWinWidth);
+    rc::castFOV(p.m_lookAngle, p.m_FOV, p.m_pos.x, p.m_pos.y, rcMap, outHits.data(), KWinWidth,
+                called);
 
     for (size_t col = 0; col < KWinWidth; ++col) {
         // dda start
 
         RcHit rayHit = outHits[col];
-        float wallHt = KWinHeight /rayHit.perpDist;
+        float wallHt = KWinHeight / rayHit.perpDist;
         float wallStart = (KWinHeight - wallHt) / 2.0f;
         float wallEnd = wallStart + wallHt;
 
@@ -297,7 +298,8 @@ Uint32 packColor(Color color) {
 //
 //         // cast the ray ath the ray angle and get the distance from player to the wall
 //         float rayAngle = p.m_lookAngleRad - p.m_FOVBy2Rad + (static_cast<float>(col) *
-//         angleStep); Vec2f direction = Vec2f(cosf(rayAngle), sinf(rayAngle)); bool stop = false;
+//         angleStep);
+//         Vec2f direction = Vec2f(cosf(rayAngle), sinf(rayAngle)); bool stop = false;
 //         while (!stop) {
 //             int stepX = static_cast<int>(p.Posf().x + direction.x * dist);
 //             int stepY = static_cast<int>(p.Posf().y + direction.y * dist);
@@ -408,9 +410,13 @@ void processInput(SDL_Event *event, Player &player, float dt) {
     // }
     if (keypressed[SDL_SCANCODE_RIGHT]) {
         player.TurnRight(dt);
+        called += 2;
     }
     if (keypressed[SDL_SCANCODE_LEFT]) {
         player.TurnLeft(dt);
+    }
+    if (keypressed[SDL_SCANCODE_SPACE]) {
+        player.Shoot(dt);
     }
 }
 
@@ -484,8 +490,6 @@ void processInput(SDL_Event *event, Player &player, float dt) {
 //     float angleStep = 1.0f * DEG_TO_RAD;
 //     Vec2f start = p.Posf();
 //
-//     std::cout << "First angle: " << firstAngleRad;
-//     std::cout << "\nlast angle: " << lastAngleRad << std::endl;
 //     for (float angle = firstAngleRad; angle <= lastAngleRad; angle += angleStep) {
 //         direction = Vec2f(std::cos(angle), std::sin(angle));
 //         float dist = 0.1f;

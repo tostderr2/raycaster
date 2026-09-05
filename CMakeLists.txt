@@ -62,6 +62,10 @@ else()
         -Wnull-dereference
         -Wdouble-promotion
         -Wformat=2
+
+    )
+ target_link_options(${PROJECT_NAME} PRIVATE
+        -fsanitize=address,undefined
     )
 endif()
 

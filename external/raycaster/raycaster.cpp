@@ -1,5 +1,8 @@
 #include "raycaster.h"
 
+#include <iostream>
+#include <ostream>
+
 #include "types.h"
 
 namespace rc {
@@ -31,10 +34,6 @@ RcHit castRay(float lookAngle, float rayAngle, float originX, float originY, con
     // removes the fish eye effect (where the view plane looks a bit like a globe)
     float perpDist = dist * cosf(rayAngle - lookAngle);
 
-    // draw the map for this one column of window with the dist value
-    // get the wall ht
-    // will be put into if else block later with more accurate dist
-    // to ht representation
     if (perpDist < 0.1f) {
         perpDist = 0.1f;
     }
@@ -43,19 +42,27 @@ RcHit castRay(float lookAngle, float rayAngle, float originX, float originY, con
     return RcHit{perpDist, stepX, stepY, map.cells[map.width * stepY + stepX]};
 }
 
-void castFOV(float lookAngle, float fovRadians, float originX, float originY, const RcMap &map,
-             RcHit *outHits, int numColumn) {
+void castFOV(float lookAngle, float fov, float originX, float originY, const RcMap &map,
+             RcHit *outHits, int numColumn, int &called) {
     // at fov start to end cast ray
 
-    static float angleStep = fovRadians / static_cast<float>(numColumn);
-    static float fovRadiansBy2 = fovRadians / 2.0f;
+    static float angleStep = fov / static_cast<float>(numColumn);
+     float FOVBy2 = fov / 2.0f;
+
+    if (called == 0) {
+        std::cout << "angle step: " << angleStep << " ,fov by 2: " << FOVBy2 << std::endl;
+        std::cout << "in main\n" << called << '\n';
+        called--;
+    } else if (called == 1) {
+        std::cout << "angle step: " << angleStep << " ,fov by 2: " << FOVBy2 << std::endl;
+        std::cout << "in loop\n" << called << '\n';
+        called++;
+    }
 
     for (int col = 0; col < numColumn; ++col) {
-        float rayAngle = lookAngle - fovRadiansBy2 + (static_cast<float>(col) * angleStep);
+        float rayAngle = lookAngle - FOVBy2 + (static_cast<float>(col) * angleStep);
 
-        // RcHit castRay(float lookAngle, float rayAngle, float originX,float originY, RcMap &map) {
-		outHits[col] = castRay(lookAngle, rayAngle, originX, originY, map);
-        // outHits[col] = castRay(lookAngle, rayAngle, originX, originY, map);
+        outHits[col] = castRay(lookAngle, rayAngle, originX, originY, map);
     }
 }
 

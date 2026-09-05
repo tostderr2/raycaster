@@ -16,14 +16,12 @@ class Player {
     // void MoveRight(float dt);
     void TurnRight(float dt);
     void TurnLeft(float dt);
+	void Shoot(float dt);
     // SDL_FRect *GetPlayerFRect();
 
     float m_lookAngle;
-    float m_lookAngleRad;
     float m_FOV;
-    float m_FOVRad;
     float m_FOVBy2;
-    float m_FOVBy2Rad;
     float m_TurnRate;
     rc::Vec2f m_pos;
 
@@ -37,5 +35,8 @@ class Player {
     bool colliding(rc::Vec2f newPos);
 
     float m_speed;
+    float m_lookAngleDegrees;
+    float m_FOVBy2Degrees;
+    float m_FOVDegrees;
     // SDL_FRect m_playerFRect;
 };

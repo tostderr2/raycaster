@@ -3,6 +3,9 @@
 #include <cmath>
 #include <iostream>
 
+#include <SDL3/SDL_stdinc.h>
+#include <SDL3/SDL_timer.h>
+
 #include "constants.h"
 
 // m_pos is currently vec2f, but should be vec2int
@@ -10,13 +13,13 @@ Player::Player() : m_pos(1.2f, 1.2f) { // Start inside the cell
     m_speed = 2.7f;                    // Move 2.7 map tiles per second
     m_TurnRate = 3.0f;                 // Radians per second
 
-    m_lookAngle = 0.0f;
-    m_lookAngleRad = m_lookAngle * DEG_TO_RAD;
+    m_lookAngleDegrees = 0.0f;
+    m_lookAngle = m_lookAngleDegrees * DEG_TO_RAD;
 
-    m_FOV = 90.0f;
-    m_FOVRad = m_FOV * DEG_TO_RAD;
-    m_FOVBy2 = m_FOV / 2.0f;
-    m_FOVBy2Rad = m_FOVBy2 * DEG_TO_RAD;
+    m_FOVDegrees = 90.0f;
+    m_FOV = m_FOVDegrees * DEG_TO_RAD;
+    m_FOVBy2Degrees = m_FOVDegrees / 2.0f;
+    m_FOVBy2 = m_FOVBy2Degrees * DEG_TO_RAD;
 } //
 // Player::Player(SDL_FRect rect) : m_pos(1080 / 2.0f, 720.0f / 2) {
 //     m_playerFRect = rect;
@@ -45,13 +48,13 @@ bool Player::colliding(Vec2f newPos) {
 }
 
 void Player::MoveForward(float dt) {
-    Vec2f direction = Vec2f(cosf(m_lookAngleRad), sinf(m_lookAngleRad));
+    Vec2f direction = Vec2f(cosf(m_lookAngle), sinf(m_lookAngle));
     Vec2f toMove = direction * (m_speed * static_cast<float>(dt));
     move(toMove);
 }
 
 void Player::MoveBackward(float dt) {
-    Vec2f direction = Vec2f(cosf(m_lookAngleRad), sinf(m_lookAngleRad));
+    Vec2f direction = Vec2f(cosf(m_lookAngle), sinf(m_lookAngle));
     Vec2f toMove = direction * (-m_speed * static_cast<float>(dt));
     move(toMove);
 }
@@ -69,23 +72,44 @@ void Player::MoveBackward(float dt) {
 // }
 //
 void Player::TurnRight(float dt) {
-    m_lookAngleRad += dt * m_TurnRate;
-    std::cout << "angle: " << m_lookAngleRad << std::endl;
-    if (m_lookAngleRad > 2 * PI) {
-        m_lookAngleRad -= 2 * PI;
+    m_lookAngle += dt * m_TurnRate;
+    if (m_lookAngle > 2 * PI) {
+        m_lookAngle -= 2 * PI;
     }
-    std::cout << "angle: " << m_lookAngleRad << std::endl;
 }
 
 void Player::TurnLeft(float dt) {
-    m_lookAngleRad -= dt * m_TurnRate;
-    std::cout << "angle: " << m_lookAngleRad << std::endl;
-    if (m_lookAngleRad < 0.0f) {
-        m_lookAngleRad += 2 * PI;
+    m_lookAngle -= dt * m_TurnRate;
+    if (m_lookAngle < 0.0f) {
+        m_lookAngle += 2 * PI;
     }
-    std::cout << "angle: " << m_lookAngleRad << std::endl;
 }
 
+void Player::Shoot(float dt) {
+    // todo:
+    // create an entity manager that has enemy and bullets
+    // use that manager to spawn a bullet.
+    // with players current pos as its parameters
+    // rendering it and updating will happen in that manager
+    // it will have a vector of entities that will be looped to
+    // check if it is visible or behind the hitPoints of that row
+    // and render
+    // so it will need a reference to hitPoints vector
+    // have done this in shapes and shooter, check it for reference
+
+    static Uint64 lastFireTime = 0;
+    static Uint64 fireRate = 100; // one bullet every 100 ms?
+    Uint64 current = SDL_GetTicks();
+
+    if (current - lastFireTime >= fireRate) {
+        std::cout << "Player shot a bullte\n";
+        lastFireTime = current;
+
+        // DUMMY LEAK: Allocate 500 integers on the heap and never call delete[]
+        int *dummyLeak = new int[50000];
+        dummyLeak[0] = 42;
+    }
+}
 // SDL_FRect *Player::GetPlayerFRect() {
 //     return &m_playerFRect;
 // }
