@@ -22,12 +22,15 @@ find_package(SDL3 REQUIRED)
 file(GLOB_RECURSE SOURCES CONFIGURE_DEPENDS 
     "${CMAKE_CURRENT_SOURCE_DIR}/src/*.cpp" 
     "${CMAKE_CURRENT_SOURCE_DIR}/src/*.c"
+
+"${CMAKE_CURRENT_SOURCE_DIR}/external/raycaster/*.cpp"
+
 )
 
 add_executable(${PROJECT_NAME} ${SOURCES})
 
 target_include_directories(${PROJECT_NAME} PRIVATE
-    ${CMAKE_CURRENT_SOURCE_DIR}/include
+    ${CMAKE_CURRENT_SOURCE_DIR}/external
 )
 
 target_link_libraries(${PROJECT_NAME} PRIVATE
@@ -73,3 +76,16 @@ if(EXISTS "${ASSET_DIR}")
         COMMENT "Syncing asset directory to target binary output directory..."
     )
 endif()
+
+# perf:
+# 1. Create a user-facing toggle option (Default is OFF)
+# 1. Create the user option (Defaults to ON as you requested)
+option(ENABLE_BENCHMARK "Enable benchmark mode (disables VSync)" ON)
+
+# 2. Pass the compiler flag if the option is enabled
+if(ENABLE_BENCHMARK)
+    target_compile_definitions(${PROJECT_NAME} PRIVATE VSYNC_DEFAULT=0)
+else()
+    target_compile_definitions(${PROJECT_NAME} PRIVATE VSYNC_DEFAULT=1)
+endif()
+

@@ -1,6 +1,7 @@
 #include "player.h"
 
 #include <cmath>
+#include <iostream>
 
 #include "constants.h"
 
@@ -33,7 +34,7 @@ void Player::move(Vec2f delta) {
 }
 
 bool Player::colliding(Vec2f newPos) {
-    size_t mapX = static_cast<size_t >(newPos.x);
+    size_t mapX = static_cast<size_t>(newPos.x);
     size_t mapY = static_cast<size_t>(newPos.y);
 
     if (mapX < 0 || mapX >= KMapWidth || mapY < 0 || mapY >= KMapHeight) {
@@ -69,18 +70,26 @@ void Player::MoveBackward(float dt) {
 //
 void Player::TurnRight(float dt) {
     m_lookAngleRad += dt * m_TurnRate;
-    // std::cout << "angle: " << m_lookAngleRad << std::endl;
+    std::cout << "angle: " << m_lookAngleRad << std::endl;
+    if (m_lookAngleRad > 2 * PI) {
+        m_lookAngleRad -= 2 * PI;
+    }
+    std::cout << "angle: " << m_lookAngleRad << std::endl;
 }
 
 void Player::TurnLeft(float dt) {
     m_lookAngleRad -= dt * m_TurnRate;
-    // std::cout << "angle: " << m_lookAngleRad << std::endl;
+    std::cout << "angle: " << m_lookAngleRad << std::endl;
+    if (m_lookAngleRad < 0.0f) {
+        m_lookAngleRad += 2 * PI;
+    }
+    std::cout << "angle: " << m_lookAngleRad << std::endl;
 }
 
 // SDL_FRect *Player::GetPlayerFRect() {
 //     return &m_playerFRect;
 // }
-Vec2f Player::Posf() {
-    // return Vec2f{m_playerFRect.x, m_playerFRect.y};
-    return m_pos;
-}
+// Vec2f Player::Posf() {
+//     // return Vec2f{m_playerFRect.x, m_playerFRect.y};
+//     return m_pos;
+// }

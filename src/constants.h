@@ -5,7 +5,12 @@
 #include <SDL3/SDL_pixels.h>
 #include <SDL3/SDL_stdinc.h>
 
-float constexpr DEG_TO_RAD = 3.14159265f / 180.0f;
+#include "raycaster/raycaster.h"
+
+using namespace rc;
+
+#define PI 3.14159265f
+float constexpr DEG_TO_RAD = PI / 180.0f;
 constexpr size_t KWinWidth = 1080;
 constexpr size_t KWinHeight = 720;
 
@@ -18,17 +23,18 @@ constexpr float KMapSpaceStepRatioX = KMapWidth / static_cast<float>(KWinWidth);
 constexpr float KMapSpaceStepRatioY = KMapHeight / static_cast<float>(KWinHeight);
 
 struct Color {
-    Uint8 r;
-    Uint8 g;
-    Uint8 b;
-    Uint8 a;
+	Uint8 r{0};
+	Uint8 g{0};
+	Uint8 b{0};
+	Uint8 a{0};
 };
-
 
 // Color constants
 constexpr Color KEmpty = {.r = 255, .g = 255, .b = 255, .a = 0}; // Fixed Alpha transparency
 
-constexpr SDL_FColor KTeal = {
+constexpr Color KTeal = {.r = 145, .g = 217, .b = 214, .a = 255}; // sky background
+
+constexpr SDL_FColor KTealF = {
     .r = 145 / 255.0f, .g = 217 / 255.0f, .b = 214 / 255.0f, .a = 255 / 255.0f}; // sky background
 
 constexpr SDL_FColor KOrange = {
