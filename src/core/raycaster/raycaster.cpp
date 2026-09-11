@@ -41,7 +41,7 @@ RcHit castRay(float lookAngle, float rayAngle, float originX, float originY, con
 
     // DDA stepping
     bool hit = false;
-    // 0 for x 1 for y
+    // 1 for x 0 for y
     int side = 0;
 
     while (!hit) {
@@ -49,11 +49,11 @@ RcHit castRay(float lookAngle, float rayAngle, float originX, float originY, con
         if (sideDist.x < sideDist.y) {
             sideDist.x += rayUnitStepSize.x;
             mapPos.x += stepDir.x;
-            side = 0;
+            side = 1;
         } else {
             sideDist.y += rayUnitStepSize.y;
             mapPos.y += stepDir.y;
-            side = 1;
+            side = 0;
         }
         // boundary check
         if (mapPos.x < 0 || mapPos.x >= map.width || mapPos.y < 0 || mapPos.y >= map.height) {
@@ -74,21 +74,23 @@ RcHit castRay(float lookAngle, float rayAngle, float originX, float originY, con
         hitCellType = map.cells[mapPos.y * map.width + mapPos.x];
         // get per dist
         if (side) {
-            perpWallDist = sideDist.y - rayUnitStepSize.y;
-        } else {
-
             perpWallDist = sideDist.x - rayUnitStepSize.x;
+        } else {
+            perpWallDist = sideDist.y - rayUnitStepSize.y;
         }
         perpWallDist *= cosf(rayAngle - lookAngle);
     }
 
-    return RcHit{perpWallDist, mapPos.x, mapPos.y, hitCellType};
+    // fixme:
+    // what to do if hit is false, what shall be the perpwalldist. rn map is closed so it doesnt
+    // matter, but later, if opened up, it will cause kMapwidth/0 stuff
+    return RcHit{perpWallDist, mapPos.x, mapPos.y, hitCellType, hit, side};
 }
 
 void castFOV(float lookAngle, float fov, float originX, float originY, const RcMap &map,
              RcHit *outHits, int numColumn) {
     // at fov start to end cast ray
-    static float angleStep = fov / static_cast<float>(numColumn);
+    float angleStep = fov / static_cast<float>(numColumn);
     float FOVBy2 = fov / 2.0f;
 
     for (int col = 0; col < numColumn; ++col) {

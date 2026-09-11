@@ -11,6 +11,8 @@ struct RcHit {
     int hitX;
     int hitY;
     int mapValue;
+	bool hitWall;
+	int side;
 };
 
 struct RcMap {

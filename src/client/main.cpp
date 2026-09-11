@@ -41,81 +41,6 @@ bool running = true;
 SDL_Renderer *renderer{nullptr};
 bool vSync = VSYNC_DEFAULT;
 
-Color wallColor(int wall) {
-    Color color;
-    switch (wall) {
-    case Empty_ID:
-        color = KEmpty; // FIXME: alpha is 0 still this renders as solid white
-        break;
-    case StoneWall_ID:
-        color = KStoneWall;
-        break;
-    case RedWall_ID:
-        color = KMaroonWall;
-        break;
-    case IceBlue_ID:
-        color = KIceBlueWall;
-        break;
-    case Purple_ID:
-        color = KPurple;
-        break;
-    case Green_ID:
-        color = KGreen;
-        break;
-    default:
-        color = KDefaultWhite;
-        break;
-    }
-
-    return color;
-}
-
-void raycasterFillBuffer(Uint32 *pixleData, Player &p) {
-
-    static rc::RcMap rcMap{reinterpret_cast<const int *>(KMap), KMapWidth, KMapHeight};
-    static std::vector<RcHit> outHits(KWinWidth);
-
-    rc::castFOV(p.m_lookAngle, p.m_FOV, p.m_pos.x, p.m_pos.y, rcMap, outHits.data(), KWinWidth);
-
-    for (int col = 0; col < KWinWidth; ++col) {
-        // dda start
-
-        RcHit rayHit = outHits[static_cast<size_t>(col)];
-        int wallHt = int(KWinHeight / rayHit.perpDist);
-        int wallStart = (KWinHeight - wallHt) / 2;
-        int wallEnd = wallStart + wallHt;
-
-        bool hitWall = (rayHit.hitX >= 0 && rayHit.hitX < KMapWidth && rayHit.hitY >= 0 &&
-                        rayHit.hitY < KMapHeight && KMap[rayHit.hitY][rayHit.hitX] != 0);
-
-        // dda end
-        for (int row = 0; row < KWinHeight; ++row) {
-            Uint32 pixelColor;
-            // for this pixle, fill the color
-            if (row < wallStart) {
-                // todo: have to make the sunset looking glow later
-                // paint blue
-                pixelColor = packColor(KTeal);
-            } else if (row < wallEnd) {
-                int valueInsideGrid = hitWall ? KMap[rayHit.hitY][rayHit.hitX] : StoneWall_ID;
-                pixelColor = packColor(wallColor(valueInsideGrid));
-            } else {
-                // draw the ground
-                pixelColor = packColor(KMudFloor);
-            }
-            // std::cout << "color is: " << pixelColor;
-
-            pixleData[row * KWinWidth + col] = pixelColor;
-        }
-    }
-}
-
-std::ostream &operator<<(std::ostream &os, const Color &color) {
-    os << "RGBA(" << static_cast<int>(color.r) << ", " << static_cast<int>(color.g) << ", "
-       << static_cast<int>(color.b) << ", " << static_cast<int>(color.a) << ")";
-    return os;
-}
-
 int main(int /* argc */, char ** /* argv*/) {
     // init and setup basic window and renderer
     SDL_Window *window{nullptr};
@@ -223,6 +148,96 @@ int main(int /* argc */, char ** /* argv*/) {
     return 0;
 }
 
+Color wallColor(int wall) {
+    Color color;
+    switch (wall) {
+    case Empty_ID:
+        color = KEmpty; // FIXME: alpha is 0 still this renders as solid white
+        break;
+    case StoneWall_ID:
+        color = KStoneWall;
+        break;
+    case RedWall_ID:
+        color = KMaroonWall;
+        break;
+    case IceBlue_ID:
+        color = KIceBlueWall;
+        break;
+    case Purple_ID:
+        color = KPurple;
+        break;
+    case Green_ID:
+        color = KGreen;
+        break;
+    default:
+        color = KDefaultWhite;
+        break;
+    }
+
+    return color;
+}
+
+Uint32 packColorShaded(Color color, float factor) {
+    // Clamp the factor between 0.0 (darkest) and 1.0 (original)
+    if (factor < 0.0f)
+        factor = 0.0f;
+    if (factor > 1.0f)
+        factor = 1.0f;
+
+    // Apply the factor to R, G, and B channels
+    Uint32 r = static_cast<Uint32>(color.r * factor);
+    Uint32 g = static_cast<Uint32>(color.g * factor);
+    Uint32 b = static_cast<Uint32>(color.b * factor);
+    Uint32 a = static_cast<Uint32>(color.a); // Keep alpha unchanged
+
+    // Pack into a single 32-bit integer
+    return (r << 24) | (g << 16) | (b << 8) | a;
+}
+void raycasterFillBuffer(Uint32 *pixleData, Player &p) {
+
+    static rc::RcMap rcMap{reinterpret_cast<const int *>(KMap), KMapWidth, KMapHeight};
+    static std::vector<RcHit> outHits(KWinWidth);
+
+    rc::castFOV(p.m_lookAngle, p.m_FOV, p.m_pos.x, p.m_pos.y, rcMap, outHits.data(), KWinWidth);
+
+    for (int col = 0; col < KWinWidth; ++col) {
+
+        RcHit rayHit = outHits[static_cast<size_t>(col)];
+        int wallHt = int(KWinHeight / rayHit.perpDist);
+        int wallStart = (KWinHeight - wallHt) / 2;
+        int wallEnd = wallStart + wallHt;
+
+        // bool hitWall = rayHit.hitWall;
+
+        for (int row = 0; row < KWinHeight; ++row) {
+            Uint32 pixelColor;
+            // for this pixle, fill the color
+            if (row < wallStart) {
+                // todo: have to make the sunset looking glow later
+                // paint blue
+                pixelColor = packColor(KTeal);
+            } else if (row < wallEnd) {
+                // wall
+                int valueInsideGrid = rayHit.mapValue;
+                pixelColor = (rayHit.side) ? packColorShaded(wallColor(valueInsideGrid), 0.8f)
+                                           : packColor(wallColor(valueInsideGrid));
+            } else {
+                // ground
+                pixelColor = packColor(KMudFloor);
+            }
+            // std::cout << "color is: " << pixelColor;
+
+            pixleData[row * KWinWidth + col] = pixelColor;
+        }
+    }
+}
+
+std::ostream &operator<<(std::ostream &os, const Color &color) {
+    os << "RGBA(" << static_cast<int>(color.r) << ", " << static_cast<int>(color.g) << ", "
+       << static_cast<int>(color.b) << ", " << static_cast<int>(color.a) << ")";
+    return os;
+}
+
 Color GetColor(int num) {
     Color wall;
     switch (num) {
@@ -242,12 +257,57 @@ Color GetColor(int num) {
     return wall;
 }
 
+// returns SDL_PIXELFORMAT_RGBA8888 formatted packed data
 Uint32 packColor(Color color) {
-    return static_cast<Uint32>(color.r) << 24   // last 8 bits
+
+    return static_cast<Uint32>(color.r) << 24   // first 8 bits
            | static_cast<Uint32>(color.g) << 16 // next 8
            | static_cast<Uint32>(color.b) << 8  // next
-           | static_cast<Uint32>(color.a);      // first 8
+           | static_cast<Uint32>(color.a);      // last 8
 }
+
+void processInput(SDL_Event *event, Player &player, float dt) {
+    while (SDL_PollEvent(event)) {
+        if (event->type == SDL_EVENT_QUIT) {
+            running = false;
+        }
+
+        if (event->type == SDL_EVENT_KEY_DOWN) {
+            if (event->key.key == SDLK_ESCAPE) {
+                running = false;
+            } else if (event->key.key == SDLK_P) {
+                vSync = !vSync;
+                SDL_SetRenderVSync(renderer, vSync);
+            }
+        }
+    }
+
+    const bool *keypressed = SDL_GetKeyboardState(NULL);
+
+    if (keypressed[SDL_SCANCODE_W]) {
+        player.MoveForward(dt);
+    }
+    if (keypressed[SDL_SCANCODE_S]) {
+        player.MoveBackward(dt);
+    }
+    // todo: add strafing here later
+    // if (keypressed[SDL_SCANCODE_A]) {
+    //     player.MoveLeft(dt);
+    // }
+    // if (keypressed[SDL_SCANCODE_D]) {
+    //     player.MoveRight(dt);
+    // }
+    if (keypressed[SDL_SCANCODE_RIGHT]) {
+        player.TurnRight(dt);
+    }
+    if (keypressed[SDL_SCANCODE_LEFT]) {
+        player.TurnLeft(dt);
+    }
+    if (keypressed[SDL_SCANCODE_SPACE]) {
+        player.Shoot(dt);
+    }
+}
+
 //
 // void renderRaycasted(Player &p) {
 //
@@ -365,48 +425,6 @@ Uint32 packColor(Color color) {
 //
 //     SDL_RenderPresent(renderer);
 // }
-
-void processInput(SDL_Event *event, Player &player, float dt) {
-    while (SDL_PollEvent(event)) {
-        if (event->type == SDL_EVENT_QUIT) {
-            running = false;
-        }
-
-        if (event->type == SDL_EVENT_KEY_DOWN) {
-            if (event->key.key == SDLK_ESCAPE) {
-                running = false;
-            } else if (event->key.key == SDLK_P) {
-                vSync = !vSync;
-                SDL_SetRenderVSync(renderer, vSync);
-            }
-        }
-    }
-
-    const bool *keypressed = SDL_GetKeyboardState(NULL);
-
-    if (keypressed[SDL_SCANCODE_W]) {
-        player.MoveForward(dt);
-    }
-    if (keypressed[SDL_SCANCODE_S]) {
-        player.MoveBackward(dt);
-    }
-    // todo: add strafing here later
-    // if (keypressed[SDL_SCANCODE_A]) {
-    //     player.MoveLeft(dt);
-    // }
-    // if (keypressed[SDL_SCANCODE_D]) {
-    //     player.MoveRight(dt);
-    // }
-    if (keypressed[SDL_SCANCODE_RIGHT]) {
-        player.TurnRight(dt);
-    }
-    if (keypressed[SDL_SCANCODE_LEFT]) {
-        player.TurnLeft(dt);
-    }
-    if (keypressed[SDL_SCANCODE_SPACE]) {
-        player.Shoot(dt);
-    }
-}
 
 // will someday clean up and remove globals so just keeping this a bit cleaner. maybe just using
 // template <size_t Rows, size_t Cols>

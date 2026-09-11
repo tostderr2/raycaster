@@ -6,8 +6,6 @@ bin-int/
 .vscode/
 compile_commands.json
 
-justmake.sh
-makeandrun.sh
-generate.sh
+scripts/
 
 asan/
