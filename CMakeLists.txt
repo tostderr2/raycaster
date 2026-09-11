@@ -23,14 +23,14 @@ file(GLOB_RECURSE SOURCES CONFIGURE_DEPENDS
     "${CMAKE_CURRENT_SOURCE_DIR}/src/*.cpp" 
     "${CMAKE_CURRENT_SOURCE_DIR}/src/*.c"
 
-"${CMAKE_CURRENT_SOURCE_DIR}/external/raycaster/*.cpp"
+# "${CMAKE_CURRENT_SOURCE_DIR}/core/raycaster/*.cpp"
 
 )
 
 add_executable(${PROJECT_NAME} ${SOURCES})
 
 target_include_directories(${PROJECT_NAME} PRIVATE
-    ${CMAKE_CURRENT_SOURCE_DIR}/external
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/core
 )
 
 target_link_libraries(${PROJECT_NAME} PRIVATE

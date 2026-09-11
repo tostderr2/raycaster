@@ -4,7 +4,6 @@
 #include <cstring>
 #include <iostream>
 
-#include <SDL3/SDL_stdinc.h>
 #include <SDL3/SDL_timer.h>
 
 #include "constants.h"
@@ -38,8 +37,8 @@ void Player::move(Vec2f delta) {
 }
 
 bool Player::colliding(Vec2f newPos) {
-    size_t mapX = static_cast<size_t>(newPos.x);
-    size_t mapY = static_cast<size_t>(newPos.y);
+    int mapX = static_cast<int>(newPos.x);
+    int mapY = static_cast<int>(newPos.y);
 
     if (mapX < 0 || mapX >= KMapWidth || mapY < 0 || mapY >= KMapHeight) {
         return true;
@@ -86,7 +85,7 @@ void Player::TurnLeft(float dt) {
     }
 }
 
-void Player::Shoot(float dt) {
+void Player::Shoot(float /*dt*/) {
     // todo:
     // create an entity manager that has enemy and bullets
     // use that manager to spawn a bullet.

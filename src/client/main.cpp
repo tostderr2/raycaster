@@ -3,7 +3,6 @@
 #include <cmath>
 #include <iomanip>
 #include <iostream>
-#include <memory>
 #include <ostream>
 #include <sstream>
 #include <string>
@@ -18,7 +17,6 @@
 #include <SDL3/SDL_render.h>
 #include <SDL3/SDL_scancode.h>
 #include <SDL3/SDL_stdinc.h>
-// #include <SDL3/SDL_surface.h>
 #include <SDL3/SDL_timer.h>
 #include <SDL3/SDL_video.h>
 
@@ -42,8 +40,6 @@ Uint32 packColor(Color color);
 bool running = true;
 SDL_Renderer *renderer{nullptr};
 bool vSync = VSYNC_DEFAULT;
-
-int called = 0;
 
 Color wallColor(int wall) {
     Color color;
@@ -79,22 +75,21 @@ void raycasterFillBuffer(Uint32 *pixleData, Player &p) {
     static rc::RcMap rcMap{reinterpret_cast<const int *>(KMap), KMapWidth, KMapHeight};
     static std::vector<RcHit> outHits(KWinWidth);
 
-    rc::castFOV(p.m_lookAngle, p.m_FOV, p.m_pos.x, p.m_pos.y, rcMap, outHits.data(), KWinWidth,
-                called);
+    rc::castFOV(p.m_lookAngle, p.m_FOV, p.m_pos.x, p.m_pos.y, rcMap, outHits.data(), KWinWidth);
 
-    for (size_t col = 0; col < KWinWidth; ++col) {
+    for (int col = 0; col < KWinWidth; ++col) {
         // dda start
 
-        RcHit rayHit = outHits[col];
-        float wallHt = KWinHeight / rayHit.perpDist;
-        float wallStart = (KWinHeight - wallHt) / 2.0f;
-        float wallEnd = wallStart + wallHt;
+        RcHit rayHit = outHits[static_cast<size_t>(col)];
+        int wallHt = int(KWinHeight / rayHit.perpDist);
+        int wallStart = (KWinHeight - wallHt) / 2;
+        int wallEnd = wallStart + wallHt;
 
         bool hitWall = (rayHit.hitX >= 0 && rayHit.hitX < KMapWidth && rayHit.hitY >= 0 &&
                         rayHit.hitY < KMapHeight && KMap[rayHit.hitY][rayHit.hitX] != 0);
 
         // dda end
-        for (size_t row = 0; row < KWinHeight; ++row) {
+        for (int row = 0; row < KWinHeight; ++row) {
             Uint32 pixelColor;
             // for this pixle, fill the color
             if (row < wallStart) {
@@ -123,7 +118,6 @@ std::ostream &operator<<(std::ostream &os, const Color &color) {
 
 int main(int /* argc */, char ** /* argv*/) {
     // init and setup basic window and renderer
-    /* We will use this renderer to draw into this window every frame. */
     SDL_Window *window{nullptr};
     SDL_Texture *screenTex{nullptr};
     std::vector<Uint32> pixelBuffer(KWinWidth * KWinHeight);
@@ -157,11 +151,6 @@ int main(int /* argc */, char ** /* argv*/) {
         return -1;
     }
 
-    // winSurface = SDL_GetWindowSurface(window);
-    // if (!winSurface) {
-    //     SDL_Log("Couldn't get window surface: %s\n", SDL_GetError());
-    //     return -1;
-    // }
     SDL_SetRenderVSync(renderer, vSync);
     // init done
 
@@ -181,8 +170,8 @@ int main(int /* argc */, char ** /* argv*/) {
         Uint64 currentTime = SDL_GetTicks();
         Uint64 frameTimeMs = currentTime - prevTime;
 
-        // testing naive frame rate
-        // note: relaxing of cpu turned off
+        // note: uncomment to reduce cpu usage
+        // testing naive frame rate cap
         // if (frameTimeMs < fixedFrameSpeed) {
         //     SDL_Delay(fixedFrameSpeed - static_cast<Uint32>(frameTimeMs));
         //     // gotta reset after the sleep
@@ -410,7 +399,6 @@ void processInput(SDL_Event *event, Player &player, float dt) {
     // }
     if (keypressed[SDL_SCANCODE_RIGHT]) {
         player.TurnRight(dt);
-        called += 2;
     }
     if (keypressed[SDL_SCANCODE_LEFT]) {
         player.TurnLeft(dt);

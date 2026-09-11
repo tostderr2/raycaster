@@ -1,6 +1,5 @@
 #pragma once
 
-#include <cstddef>
 
 #include <SDL3/SDL_pixels.h>
 #include <SDL3/SDL_stdinc.h>
@@ -11,13 +10,13 @@ using namespace rc;
 
 #define PI 3.14159265f
 float constexpr DEG_TO_RAD = PI / 180.0f;
-constexpr size_t KWinWidth = 1080;
-constexpr size_t KWinHeight = 720;
+constexpr int KWinWidth = 1080;
+constexpr int KWinHeight = 720;
 
-constexpr size_t KMapWidth = 24;
-constexpr size_t KMapHeight = 24;
-constexpr size_t KDrawBoxWidth = KWinWidth / KMapWidth;
-constexpr size_t KDrawBoxHeight = KWinHeight / KMapHeight;
+constexpr int KMapWidth = 24;
+constexpr int KMapHeight = 24;
+constexpr int KDrawBoxWidth = KWinWidth / KMapWidth;
+constexpr int KDrawBoxHeight = KWinHeight / KMapHeight;
 
 constexpr float KMapSpaceStepRatioX = KMapWidth / static_cast<float>(KWinWidth);
 constexpr float KMapSpaceStepRatioY = KMapHeight / static_cast<float>(KWinHeight);
