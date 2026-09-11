@@ -22,8 +22,8 @@ RcHit castRay(float lookAngle, float rayAngle, float originX, float originY, con
     // unit vector triangle vs a triangle of the actual distance ray has to travel
     // both are drawn on top so same angle
     // serach what is a "big number" in cpp. it was a exponent
-    Vec2f rayUnitStepSize = {(rayDir.x < 0.01f) ? 10000000 : 1.0f / rayDir.x,
-                             (rayDir.y < 0.01f) ? 10000000 : 1.0f / rayDir.y};
+    Vec2f rayUnitStepSize = {(rayDir.x == 0.0f) ? 100 : 1.0f / rayDir.x,
+                             (rayDir.y == 0.00f) ? 100 : 1.0f / rayDir.y};
 
     // initial distance to nearest  grid boundary
     Vec2f sideDist;
@@ -70,12 +70,16 @@ RcHit castRay(float lookAngle, float rayAngle, float originX, float originY, con
     int hitCellType = 0;
 
     if (hit) {
+		// which wall was hit
+		hitCellType = map.cells[mapPos.y * map.width + mapPos.x];
+		// get per dist
         if (side) {
-            perpWallDist = sideDist.y;
+            perpWallDist = sideDist.y- rayUnitStepSize.y;
         } else {
 
-            perpWallDist = sideDist.x;
+            perpWallDist = sideDist.x- rayUnitStepSize.x;
         }
+        perpWallDist *= cosf(rayAngle - lookAngle);
     }
 
     return RcHit{perpWallDist, mapPos.x, mapPos.y, hitCellType};
