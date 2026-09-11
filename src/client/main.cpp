@@ -177,22 +177,31 @@ Color wallColor(int wall) {
     return color;
 }
 
+// factor nearer to 0.0 will be shaded darker
 Uint32 packColorShaded(Color color, float factor) {
-    // Clamp the factor between 0.0 (darkest) and 1.0 (original)
     if (factor < 0.0f)
         factor = 0.0f;
     if (factor > 1.0f)
         factor = 1.0f;
 
-    // Apply the factor to R, G, and B channels
     Uint32 r = static_cast<Uint32>(color.r * factor);
     Uint32 g = static_cast<Uint32>(color.g * factor);
     Uint32 b = static_cast<Uint32>(color.b * factor);
     Uint32 a = static_cast<Uint32>(color.a); // Keep alpha unchanged
 
-    // Pack into a single 32-bit integer
     return (r << 24) | (g << 16) | (b << 8) | a;
 }
+
+// halves the color values, thus making it twice as dark
+Uint32 packColorHalfDark(Color color) {
+    Uint32 r = static_cast<Uint32>(color.r >> 1);
+    Uint32 g = static_cast<Uint32>(color.g >> 1);
+    Uint32 b = static_cast<Uint32>(color.b >> 1);
+    Uint32 a = static_cast<Uint32>(color.a);
+
+    return (r << 24) | (g << 16) | (b << 8) | a;
+}
+
 void raycasterFillBuffer(Uint32 *pixleData, Player &p) {
 
     static rc::RcMap rcMap{reinterpret_cast<const int *>(KMap), KMapWidth, KMapHeight};
@@ -204,11 +213,21 @@ void raycasterFillBuffer(Uint32 *pixleData, Player &p) {
 
         RcHit rayHit = outHits[static_cast<size_t>(col)];
         int wallHt = int(KWinHeight / rayHit.perpDist);
+        if (!rayHit.hitWall) {
+            // perpDist is 0 here
+            // no wall was hit, map is open
+            // we can just show sky here
+            wallHt = 0.0f;
+        }
         int wallStart = (KWinHeight - wallHt) / 2;
         int wallEnd = wallStart + wallHt;
 
         // bool hitWall = rayHit.hitWall;
 
+        // info:
+        // each row is of 1080 pixels, and doing a col[0] i use row[0]col[0]
+        // then the next col, in the inner loop, cpu has to jump 1080 pts ahead for col[2]
+        // yikes. lets see how fast we can make this with cache friendly changes
         for (int row = 0; row < KWinHeight; ++row) {
             Uint32 pixelColor;
             // for this pixle, fill the color

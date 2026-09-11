@@ -7,6 +7,7 @@
 
 namespace rc {
 
+// check the hit value so the you dont use perpDist = 0 and then divide by it
 RcHit castRay(float lookAngle, float rayAngle, float originX, float originY, const RcMap &map) {
     Vec2f rayDir = Vec2f(cosf(rayAngle), sinf(rayAngle));
 
@@ -79,11 +80,12 @@ RcHit castRay(float lookAngle, float rayAngle, float originX, float originY, con
             perpWallDist = sideDist.y - rayUnitStepSize.y;
         }
         perpWallDist *= cosf(rayAngle - lookAngle);
-    }
+    } else {
+		// what shall be the hitcelltype?? sky?? but we shall not have the idea of clients side
+		// maybe just let client side use the hit bool to do the needed
+		perpWallDist = 0.0001f;
+	}
 
-    // fixme:
-    // what to do if hit is false, what shall be the perpwalldist. rn map is closed so it doesnt
-    // matter, but later, if opened up, it will cause kMapwidth/0 stuff
     return RcHit{perpWallDist, mapPos.x, mapPos.y, hitCellType, hit, side};
 }
 
